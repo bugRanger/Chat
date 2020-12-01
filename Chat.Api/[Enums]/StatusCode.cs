@@ -9,5 +9,6 @@
         Failure,
         UserNotFound,
         AuthDuplicate,
+        UnknownMessage,
     }
 }

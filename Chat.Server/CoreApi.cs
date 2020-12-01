@@ -44,6 +44,7 @@
         {
             if (!_messages.TryGetValue(message.GetType(), out var action))
             {
+                Send(new MessageResponse { Status = StatusCode.UnknownMessage }, client);
                 _logger.Warn($"Unknown type: {message.GetType()}");
                 return;
             }
