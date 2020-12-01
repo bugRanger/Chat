@@ -50,10 +50,9 @@
             var token = _cancellationToken.Token;
             await Task.Run(() =>
             {
-                var time = GetTime();
-
                 while (token.IsCancellationRequested)
                 {
+                    var time = GetTime();
                     var connections = _connectionActivity.ToDictionary(k => k.Key, v => v.Value);
 
                     foreach (var item in connections)
