@@ -127,7 +127,7 @@
                 !_users.TryGetValue(message.Source, out _))
             {
                 status = StatusCode.UserNotFound;
-                reason = "Target not found.";
+                reason = "Source or target not found.";
             }
 
             Send(new MessageResponse { Status = status, Reason = reason }, client);
@@ -146,7 +146,7 @@
                 !_users.TryGetValue(message.Source, out _))
             {
                 status = StatusCode.UserNotFound;
-                reason = "Target not found.";
+                reason = "Source or target not found.";
             }
 
             Send(new MessageResponse { Status = status, Reason = reason }, client);
