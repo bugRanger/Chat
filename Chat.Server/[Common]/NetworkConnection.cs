@@ -8,7 +8,7 @@
 
     using NLog;
 
-    public delegate bool PreparePacket(IConnection connection, byte[] bytes, ref int offset, int count);
+    public delegate bool PreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count);
 
     public class NetworkConnection : IConnection, IDisposable
     {
@@ -98,7 +98,7 @@
                     int offset = 0;
                     int position = 0;
 
-                    while (prepare(this, buffer, ref offset, count))
+                    while (prepare(RemoteEndPoint, buffer, ref offset, count))
                     {
                         var packet = new ArraySegment<byte>(buffer, position, offset - position);
 

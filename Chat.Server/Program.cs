@@ -1,5 +1,6 @@
 ﻿using Chat.Api;
 using System;
+using System.Net;
 
 namespace Chat.Server
 {
@@ -13,33 +14,35 @@ namespace Chat.Server
         {
             Console.WriteLine("Hello World!");
 
-            _coreApi = new CoreApi();
-            _watcher = new ActivityWatcher(10000);
             _provider = new NetworkService();
             _provider.PreparePacket += HandleMessage;
             _provider.ConnectionAccepted += HandleConnection;
 
+            _coreApi = new CoreApi(_provider);
+            _watcher = new ActivityWatcher(_provider, 10000);
+
+            // TODO Add network interfaces.
             _provider.Start(null);
 
             Console.ReadKey();
         }
 
-        private static bool HandleMessage(IConnection connection, byte[] bytes, ref int offset, int count)
+        private static bool HandleMessage(IPEndPoint remote, byte[] bytes, ref int offset, int count)
         {
             if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
             {
                 return false;
             }
 
-            _watcher.Update(connection);
-            _coreApi.Handle(connection, (IMessage)request.Payload);
+            _watcher.Update(remote);
+            _coreApi.Handle(remote, (IMessage)request.Payload);
 
             return true;
         }
 
-        private static void HandleConnection(IConnection connection)
+        private static void HandleConnection(IPEndPoint remote)
         {
-            _watcher.Update(connection);
+            _watcher.Update(remote);
         }
     }
 }

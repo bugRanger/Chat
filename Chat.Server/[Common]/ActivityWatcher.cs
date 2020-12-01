@@ -1,10 +1,11 @@
 ﻿namespace Chat.Server
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Concurrent;
 
     public class ActivityWatcher : IActivityWatcher
     {
@@ -18,7 +19,7 @@
 
         #region Fields
 
-        private readonly ConcurrentDictionary<IConnection, long> _connectionActivity;
+        private readonly ConcurrentDictionary<IPEndPoint, long> _remoteToLastActive;
         private readonly long _interval;
 
         private CancellationTokenSource _cancellationToken;
@@ -30,7 +31,7 @@
 
         public ActivityWatcher(long interval)
         {
-            _connectionActivity = new ConcurrentDictionary<IConnection, long>();
+            _remoteToLastActive = new ConcurrentDictionary<IPEndPoint, long>();
 
             _interval = interval;
             _active = DISABLE;
@@ -53,7 +54,7 @@
                 while (token.IsCancellationRequested)
                 {
                     var time = GetTime();
-                    var connections = _connectionActivity.ToDictionary(k => k.Key, v => v.Value);
+                    var connections = _remoteToLastActive.ToDictionary(k => k.Key, v => v.Value);
 
                     foreach (var item in connections)
                     {
@@ -66,7 +67,7 @@
                         }
                         finally
                         {
-                            _connectionActivity.TryRemove(item.Key, out _);
+                            _remoteToLastActive.TryRemove(item.Key, out _);
                         }
                     }
 
@@ -84,9 +85,9 @@
             _cancellationToken.Cancel();
         }
 
-        public void Update(IConnection connection)
+        public void Update(IPEndPoint remote)
         {
-            _connectionActivity[connection] = GetTime();
+            _remoteToLastActive[remote] = GetTime();
         }
 
         private long GetTime() => DateTime.Now.ToFileTimeUtc();

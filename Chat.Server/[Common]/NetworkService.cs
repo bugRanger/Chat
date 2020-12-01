@@ -9,7 +9,7 @@
 
     using NLog;
 
-    public class NetworkService : IDisposable
+    public class NetworkService : INetworkService, INetworkСontroller, IDisposable
     {
         #region Constants
 
@@ -24,9 +24,10 @@
 
         private readonly ILogger _logger;
 
+        private readonly ConcurrentDictionary<EndPoint, IConnection> _connections;
+
         private Socket _listener;
         private CancellationTokenSource _cancelation;
-        private ConcurrentDictionary<EndPoint, IConnection> _connections;
 
         private int _active;
         private bool _disposing;
@@ -35,7 +36,7 @@
 
         #region Events
 
-        public event Action<IConnection> ConnectionAccepted;
+        public event Action<IPEndPoint> ConnectionAccepted;
         public event PreparePacket PreparePacket;
 
         #endregion Events
@@ -50,7 +51,7 @@
             _connections = new ConcurrentDictionary<EndPoint, IConnection>();
         }
 
-        ~NetworkService() 
+        ~NetworkService()
         {
             Dispose(false);
         }
@@ -100,7 +101,7 @@
                         client.Closing += (s, e) => _connections.TryRemove(client.RemoteEndPoint, out _);
                         _ = client.ListenAsync(PreparePacket, token);
 
-                        ConnectionAccepted?.Invoke(client);
+                        ConnectionAccepted?.Invoke(client.RemoteEndPoint);
                     }
                     catch (Exception ex)
                     {
@@ -121,6 +122,28 @@
             FreeToken();
 
             _listener.Close();
+        }
+
+        public void Send(IPEndPoint remote, byte[] bytes)
+        {
+            if (!_connections.TryGetValue(remote, out IConnection connection))
+            {
+                _logger?.Error($"Send error, connection not found - {remote}");
+                return;
+            }
+
+            connection.Send(bytes);
+        }
+
+        public void Disconnect(IPEndPoint remote, bool inactive)
+        {
+            if (!_connections.TryGetValue(remote, out IConnection connection))
+            {
+                _logger?.Error($"Disconnet error, connection not found - {remote}");
+                return;
+            }
+
+            connection.Disconnect(inactive);
         }
 
         private void FreeToken()
