@@ -15,7 +15,10 @@
             Console.WriteLine("Hello World!");
 
             var provider = new NetworkService();
-            var watcher = new ActivityWatcher(provider, 1000);
+            var watcher = new ActivityWatcher(provider)
+            {
+                Interval = 15000,
+            };
 
             new ApiController(provider, new AuthorizationController());
 

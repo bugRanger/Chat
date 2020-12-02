@@ -11,6 +11,8 @@
     {
         #region Constants
 
+        private const int CHECK_INTERVAL = 100;
+
         private const int ENABLED = 1;
         private const int DISABLE = 0;
 
@@ -29,21 +31,21 @@
 
         #region Properties
 
-        public uint Interval { get; set; }
+        public uint? Interval { get; set; }
 
         #endregion Properties
 
         #region Constructors
 
-        public ActivityWatcher(INetworkСontroller network, long interval)
+        public ActivityWatcher(INetworkСontroller network)
         {
             _remoteToLastActive = new ConcurrentDictionary<IPEndPoint, long>();
 
             _network = network;
-            _network.PreparePacket += OnPreparePacket;
+            _network.ConnectionAccepted += OnConnectionAccepted;
             _network.ConnectionClosing += OnConnectionClosing;
+            _network.PreparePacket += OnPreparePacket;
 
-            _interval = interval;
             _active = DISABLE;
         }
 
@@ -51,7 +53,12 @@
 
         #region Methods
 
-        public async void Start()
+        public void Start() 
+        {
+            _ = StartAsync();
+        }
+
+        public async Task StartAsync()
         {
             if (Interlocked.CompareExchange(ref _active, ENABLED, DISABLE) == ENABLED)
                 return;
@@ -81,7 +88,7 @@
                         }
                     }
 
-                    Task.Delay((int)Interval);
+                    Task.Delay((int)(Interval ?? CHECK_INTERVAL));
                 }
             },
             token);
@@ -95,7 +102,7 @@
             _cancellationToken.Cancel();
         }
 
-        private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
+        private void OnConnectionAccepted(IPEndPoint remote)
         {
             _remoteToLastActive[remote] = GetTime();
         }
@@ -106,6 +113,11 @@
                 return;
 
             _remoteToLastActive.TryRemove(remote, out _);
+        }
+
+        private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
+        {
+            OnConnectionAccepted(remote);
         }
 
         private long GetTime() => DateTime.Now.ToFileTimeUtc();

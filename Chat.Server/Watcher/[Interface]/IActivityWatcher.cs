@@ -4,7 +4,7 @@
     {
         #region Properties
 
-        uint Interval { get; set; }
+        uint? Interval { get; set; }
 
         #endregion Properties
 
