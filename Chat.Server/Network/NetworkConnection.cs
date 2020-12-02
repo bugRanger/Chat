@@ -83,7 +83,7 @@
                 var count = 0;
                 var buffer = new byte[PACKET_SIZE];
 
-                while (token.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
                     int received = _stream.Read(buffer, count, PACKET_SIZE - count);
                     if (received == 0)
@@ -96,7 +96,9 @@
                     int offset = 0;
                     int position = 0;
 
-                    while (prepare(RemoteEndPoint, buffer, ref offset, count))
+                    prepare(RemoteEndPoint, buffer, ref offset, count);
+
+                    while (offset > position)
                     {
                         var packet = new ArraySegment<byte>(buffer, position, offset - position);
 

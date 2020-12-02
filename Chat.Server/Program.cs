@@ -10,19 +10,21 @@
 
     class Program
     {
-        private static NetworkService _provider;
-
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
 
-            _provider = new NetworkService();
+            var provider = new NetworkService();
+            var watcher = new ActivityWatcher(provider, 1000);
 
-            new ApiController(_provider, new AuthorizationController());
-            new ActivityWatcher(_provider, 10000);
+            new ApiController(provider, new AuthorizationController());
+
+            watcher.Start();
 
             // TODO Add network interfaces.
-            _provider.Start(null);
+            provider
+                .StartAsync(new IPEndPoint(IPAddress.Any, 30010))
+                .Wait();
 
             Console.ReadKey();
         }

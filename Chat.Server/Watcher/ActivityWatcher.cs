@@ -47,12 +47,6 @@
             _active = DISABLE;
         }
 
-        private bool OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
-        {
-            _remoteToLastActive[remote] = GetTime();
-            return true;
-        }
-
         #endregion Constructors
 
         #region Methods
@@ -67,7 +61,7 @@
             var token = _cancellationToken.Token;
             await Task.Run(() =>
             {
-                while (token.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
                     var time = GetTime();
                     var connections = _remoteToLastActive.ToDictionary(k => k.Key, v => v.Value);
@@ -99,6 +93,11 @@
                 return;
 
             _cancellationToken.Cancel();
+        }
+
+        private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
+        {
+            _remoteToLastActive[remote] = GetTime();
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)

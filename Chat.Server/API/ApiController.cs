@@ -41,18 +41,6 @@
             Registration<MessageBroadcast>(HandleMessage);
         }
 
-        private bool OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
-        {
-            if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
-            {
-                return false;
-            }
-
-            Handle(remote, (IMessage)request.Payload);
-
-            return true;
-        }
-
         #endregion Constructors
 
         #region Methods
@@ -182,6 +170,16 @@
         private void HandleGroupMessage(IPEndPoint remote, MessageBroadcast message)
         {
             Send(new MessageResponse { Status = StatusCode.Failure, Reason = "Not supported" }, remote);
+        }
+
+        private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
+        {
+            if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
+            {
+                return;
+            }
+
+            Handle(remote, (IMessage)request.Payload);
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)

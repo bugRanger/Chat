@@ -4,7 +4,7 @@
     using System.Net;
 
 
-    public delegate bool PreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count);
+    public delegate void PreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count);
 
     public interface INetworkСontroller
     {

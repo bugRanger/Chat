@@ -67,12 +67,12 @@
 
         #region Methods
 
-        public void Start(IPEndPoint endPoint, int limit = 1000)
+        public void Start(IPEndPoint endPoint, int limit = 1)
         {
             _ = StartAsync(endPoint, limit);
         }
 
-        public async Task StartAsync(IPEndPoint endPoint, int limit = 1000)
+        public async Task StartAsync(IPEndPoint endPoint, int limit = 1)
         {
             if (Interlocked.CompareExchange(ref _active, ENABLED, DISABLE) == ENABLED)
                 return;
@@ -88,7 +88,7 @@
 
                 var token = _cancelation.Token;
 
-                while (token.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
                     NetworkConnection client = null;
 
