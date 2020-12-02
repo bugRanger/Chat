@@ -151,8 +151,8 @@
 
             _socket = null;
 
-            _socket.Close();
-            _socket.Dispose();
+            socket.Close();
+            socket.Dispose();
         }
 
         protected void Dispose(bool disposing)
