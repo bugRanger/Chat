@@ -7,6 +7,8 @@
 
     public interface IApiController
     {
-        void Handle(IPEndPoint remote, IMessage message);
+        void Send(IMessage message, params IPEndPoint[] remotes);
+
+        void Registration<T>(params Action<IPEndPoint, T>[] actions) where T : IMessage;
     }
 }
