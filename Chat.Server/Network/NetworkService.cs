@@ -1,11 +1,11 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Server.Network
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Concurrent;
 
     using NLog;
 
@@ -37,6 +37,7 @@
         #region Events
 
         public event Action<IPEndPoint> ConnectionAccepted;
+        public event Action<IPEndPoint, bool> ConnectionClosing;
         public event PreparePacket PreparePacket;
 
         #endregion Events
@@ -98,7 +99,12 @@
                         if (!_connections.TryAdd(socket.RemoteEndPoint, client = new NetworkConnection(socket)))
                             continue;
 
-                        client.Closing += (s, e) => _connections.TryRemove(client.RemoteEndPoint, out _);
+                        client.Closing += (s, inactive) =>
+                        {
+                            ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
+                            _connections.TryRemove(client.RemoteEndPoint, out _);
+                        };
+
                         _ = client.ListenAsync(PreparePacket, token);
 
                         ConnectionAccepted?.Invoke(client.RemoteEndPoint);
@@ -128,7 +134,7 @@
         {
             if (!_connections.TryGetValue(remote, out IConnection connection))
             {
-                _logger?.Error($"Send error, connection not found - {remote}");
+                _logger?.Warn($"Send error, connection not found - {remote}");
                 return;
             }
 
@@ -139,7 +145,7 @@
         {
             if (!_connections.TryGetValue(remote, out IConnection connection))
             {
-                _logger?.Error($"Disconnet error, connection not found - {remote}");
+                _logger?.Warn($"Disconnet error, connection not found - {remote}");
                 return;
             }
 

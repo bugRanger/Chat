@@ -1,4 +1,4 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Server.Network
 {
     using System;
     using System.Net;
@@ -7,8 +7,6 @@
     using System.Threading.Tasks;
 
     using NLog;
-
-    public delegate bool PreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count);
 
     public class NetworkConnection : IConnection, IDisposable
     {

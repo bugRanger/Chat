@@ -1,4 +1,4 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Server.API
 {
     using System;
     using System.Net;
@@ -10,7 +10,7 @@
     using Chat.Api;
     using Chat.Api.Messages;
 
-    public class CoreApi : ICoreApi
+    public class ApiController : IApiController
     {
         #region Fields
 
@@ -25,7 +25,7 @@
 
         #region Constructors
 
-        public CoreApi(INetworkСontroller network, IAuthorizationController authorization)
+        public ApiController(INetworkСontroller network, IAuthorizationController authorization)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
@@ -33,11 +33,24 @@
 
             _authorization = authorization;
             _network = network;
-            _network.Closing += OnNetworkClosing;
+            _network.PreparePacket += OnPreparePacket;
+            _network.ConnectionClosing += OnConnectionClosing;
 
             Registration<AuthorizationBroadcast>(HandleAuthorization);
             Registration<UnauthorizationBroadcast>(HandleUnauthorization);
             Registration<MessageBroadcast>(HandleMessage);
+        }
+
+        private bool OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
+        {
+            if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
+            {
+                return false;
+            }
+
+            Handle(remote, (IMessage)request.Payload);
+
+            return true;
         }
 
         #endregion Constructors
@@ -82,11 +95,11 @@
                     .Select(s => s.Remote)
                     .ToArray();
 
-                if (!_authorization.TryAddOrUpdate(request.User, remote))
+                _authorization.AddOrUpdate(remote, s =>
                 {
-                    status = StatusCode.Failure;
-                    reason = "Server internal error";
-                }
+                    s.Remote = remote;
+                    s.Name = request.User;
+                });
             }
 
             Send(new MessageResponse { Status = status, Reason = reason }, remote);
@@ -95,8 +108,7 @@
                 return;
             }
 
-            // TODO send User detail.
-            Send(new UsersBroadcast { Users = users.Select(s => s.Name).ToArray() }, remote);
+            Send(new UsersBroadcast { Users = users.Select(GetUserDetail).ToArray() }, remote);
             Send(request, remotes);
         }
 
@@ -132,7 +144,7 @@
 
         private void HandleMessage(IPEndPoint remote, MessageBroadcast message)
         {
-            if (IsGroupTarget(message.Target))
+            if (string.IsNullOrWhiteSpace(message.Target))
             {
                 HandleGroupMessage(remote, message);
             }
@@ -147,8 +159,10 @@
             var status = StatusCode.Success;
             var reason = string.Empty;
 
+            IUser source = null;
+
             if (!_authorization.TryGet(message.Target, out _) ||
-                !_authorization.TryGet(message.Source, out _))
+                !_authorization.TryGet(message.Source, out source))
             {
                 status = StatusCode.UserNotFound;
                 reason = "Source or target not found.";
@@ -159,37 +173,18 @@
             {
                 return;
             }
+
+            message.Source = source.Name;
 
             Send(message, remote);
         }
 
         private void HandleGroupMessage(IPEndPoint remote, MessageBroadcast message)
         {
-            var status = StatusCode.Success;
-            var reason = string.Empty;
-
-            if (!IsGroupTarget(message.Target) ||
-                !_authorization.TryGet(message.Source, out _))
-            {
-                status = StatusCode.UserNotFound;
-                reason = "Source or target not found.";
-            }
-
-            Send(new MessageResponse { Status = status, Reason = reason }, remote);
-            if (status != StatusCode.Success)
-            {
-                return;
-            }
-
-            // TODO Impl group service.
-            var remotes = GetGroupUsers(message.Target)
-                .Select(s => s.Remote)
-                .ToArray();
-
-            Send(message, remotes);
+            Send(new MessageResponse { Status = StatusCode.Failure, Reason = "Not supported" }, remote);
         }
 
-        private void OnNetworkClosing(IPEndPoint remote, bool inactive)
+        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
         {
             if (!_authorization.TryRemove(remote, out IUser user))
             {
@@ -219,16 +214,10 @@
             }
         }
 
-        // TODO Impl group service.
-        private bool IsGroupTarget(string target)
+        // TODO send User detail.
+        private string GetUserDetail(IUser user)
         {
-            return string.IsNullOrWhiteSpace(target);
-        }
-
-        // TODO Impl group service.
-        private IUser[] GetGroupUsers(string groupId) 
-        {
-            return _authorization.GetUsers();
+            return user.Name;
         }
 
         #endregion Methods

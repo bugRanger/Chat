@@ -1,4 +1,4 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Server.Watcher
 {
     using System;
     using System.Linq;
@@ -11,7 +11,6 @@
     {
         #region Constants
 
-        private const int CHECK_INTERVAL = 100;
         private const int ENABLED = 1;
         private const int DISABLE = 0;
 
@@ -19,6 +18,7 @@
 
         #region Fields
 
+        private readonly INetworkСontroller _network;
         private readonly ConcurrentDictionary<IPEndPoint, long> _remoteToLastActive;
         private readonly long _interval;
 
@@ -27,14 +27,30 @@
 
         #endregion Fields
 
+        #region Properties
+
+        public uint Interval { get; set; }
+
+        #endregion Properties
+
         #region Constructors
 
-        public ActivityWatcher(long interval)
+        public ActivityWatcher(INetworkСontroller network, long interval)
         {
             _remoteToLastActive = new ConcurrentDictionary<IPEndPoint, long>();
 
+            _network = network;
+            _network.PreparePacket += OnPreparePacket;
+            _network.ConnectionClosing += OnConnectionClosing;
+
             _interval = interval;
             _active = DISABLE;
+        }
+
+        private bool OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
+        {
+            _remoteToLastActive[remote] = GetTime();
+            return true;
         }
 
         #endregion Constructors
@@ -63,7 +79,7 @@
 
                         try
                         {
-                            item.Key.Disconnect(true);
+                            _network.Disconnect(item.Key, true);
                         }
                         finally
                         {
@@ -71,7 +87,7 @@
                         }
                     }
 
-                    Task.Delay(CHECK_INTERVAL);
+                    Task.Delay((int)Interval);
                 }
             },
             token);
@@ -85,9 +101,12 @@
             _cancellationToken.Cancel();
         }
 
-        public void Update(IPEndPoint remote)
+        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
         {
-            _remoteToLastActive[remote] = GetTime();
+            if (inactive)
+                return;
+
+            _remoteToLastActive.TryRemove(remote, out _);
         }
 
         private long GetTime() => DateTime.Now.ToFileTimeUtc();

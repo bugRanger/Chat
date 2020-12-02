@@ -5,7 +5,7 @@
 
     using Chat.Api;
 
-    public interface ICoreApi
+    public interface IApiController
     {
         void Handle(IPEndPoint remote, IMessage message);
     }
