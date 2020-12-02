@@ -10,57 +10,44 @@
     using Chat.Api;
     using Chat.Api.Messages;
 
-    public class ApiController : IApiController
+    using Chat.Server.Auth;
+
+    public class CoreApi : ICoreApi
     {
         #region Fields
 
         private readonly ILogger _logger;
 
+        private readonly List<IApiModule> _modules;
         private readonly INetworkСontroller _network;
+        private readonly AuthorizationController _authorization;
         private readonly Dictionary<Type, Action<IPEndPoint, IMessage>> _messages;
 
         #endregion Fields
 
         #region Constructors
 
-        public ApiController(INetworkСontroller network)
+        public CoreApi(INetworkСontroller network)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
             _messages = new Dictionary<Type, Action<IPEndPoint, IMessage>>();
+            _authorization = new AuthorizationController();
 
             _network = network;
-            _network.ConnectionAccepted += OnConnectionAccepted;
             _network.PreparePacket += OnPreparePacket;
             _network.ConnectionClosing += OnConnectionClosing;
 
-            new AuthModule(this, _network, null);
+            _modules = new List<IApiModule>
+            {
+                new AuthApi(this, _authorization),
+                new TextApi(this, _authorization),
+            };
         }
 
         #endregion Constructors
 
         #region Methods
-
-        private void Handle(IPEndPoint remote, IMessage message)
-        {
-            if (!_messages.TryGetValue(message.GetType(), out var action))
-            {
-                Send(new MessageResponse { Status = StatusCode.UnknownMessage }, remote);
-                _logger.Warn($"Unknown type: {message.GetType()}");
-                return;
-            }
-
-            action(remote, message);
-        }
-
-        public void Registration<T>(params Action<IPEndPoint, T>[] actions)
-            where T : IMessage
-        {
-            foreach (var action in actions)
-            {
-                _messages.TryAdd(typeof(T), (remote, message) => action(remote, (T)message));
-            }
-        }
 
         public void Send(IMessage message, params IPEndPoint[] remotes)
         {
@@ -76,6 +63,29 @@
             }
         }
 
+        public void Disconnect(IPEndPoint remote)
+        {
+            _network.Disconnect(remote, false);
+        }
+
+        public void Registration<T>(Action<IPEndPoint, T> action)
+            where T : IMessage
+        {
+            _messages.TryAdd(typeof(T), (remote, message) => action(remote, (T)message));
+        }
+
+        private void Handle(IPEndPoint remote, IMessage message)
+        {
+            if (!_messages.TryGetValue(message.GetType(), out var action))
+            {
+                Send(new MessageResponse { Status = StatusCode.UnknownMessage }, remote);
+                _logger.Warn($"Unknown type: {message.GetType()}");
+                return;
+            }
+
+            action(remote, message);
+        }
+
         private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
         {
             if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
@@ -84,10 +94,6 @@
             }
 
             Handle(remote, (IMessage)request.Payload);
-        }
-
-        private void OnConnectionAccepted(IPEndPoint remote)
-        {
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)
@@ -104,12 +110,6 @@
                 .ToArray();
 
             Send(new DisconnectBroadcast { User = user.Name }, remotes);
-        }
-
-        // TODO send User detail.
-        private string GetUserDetail(IUser user)
-        {
-            return user.Name;
         }
 
         #endregion Methods

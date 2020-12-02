@@ -20,7 +20,7 @@
                 Interval = 15000,
             };
 
-            new ApiController(provider, new AuthorizationController());
+            new CoreApi(provider);
 
             watcher.Start();
 

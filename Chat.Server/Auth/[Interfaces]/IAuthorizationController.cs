@@ -5,19 +5,13 @@
 
     using Chat.Server.Auth;
 
-    public interface IAuthorizationController
+    public interface IAuthorizationController : IUserContainer
     {
         #region Methods
 
         void AddOrUpdate(IPEndPoint remote, Action<User> update);
 
         bool TryRemove(IPEndPoint remote, out IUser user);
-
-        bool TryGet(string userName, out IUser user);
-
-        bool TryGet(IPEndPoint endPoint, out IUser user);
-
-        IUser[] GetUsers();
 
         #endregion Methods
     }
