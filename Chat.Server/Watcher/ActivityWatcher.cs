@@ -66,7 +66,7 @@
             _cancellationToken = new CancellationTokenSource();
 
             var token = _cancellationToken.Token;
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 while (!token.IsCancellationRequested)
                 {
@@ -88,7 +88,7 @@
                         }
                     }
 
-                    Task.Delay((int)(Interval ?? CHECK_INTERVAL));
+                    await Task.Delay((int)(Interval ?? CHECK_INTERVAL));
                 }
             },
             token);
