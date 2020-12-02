@@ -31,8 +31,8 @@
 
             _messages = new Dictionary<Type, Action<IPEndPoint, IMessage>>();
 
-            _authorization = authorization;
             _network = network;
+            _authorization = authorization;
             _network.PreparePacket += OnPreparePacket;
             _network.ConnectionClosing += OnConnectionClosing;
 

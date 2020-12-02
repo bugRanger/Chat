@@ -15,9 +15,6 @@
 
         private const int INACTIVE_INTERVAL = 100;
 
-        private const int ENABLED = 1;
-        private const int DISABLE = 0;
-
         #endregion Constants
 
         #region Fields
@@ -29,7 +26,6 @@
         private Socket _listener;
         private CancellationTokenSource _cancelation;
 
-        private int _active;
         private bool _disposing;
 
         #endregion Fields
@@ -48,7 +44,6 @@
         {
             _logger = LogManager.GetCurrentClassLogger();
 
-            _active = DISABLE;
             _connections = new ConcurrentDictionary<EndPoint, IConnection>();
         }
 
@@ -74,9 +69,6 @@
 
         public async Task StartAsync(IPEndPoint endPoint, int limit = 1)
         {
-            if (Interlocked.CompareExchange(ref _active, ENABLED, DISABLE) == ENABLED)
-                return;
-
             _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _listener.Bind(endPoint);
 
@@ -90,12 +82,20 @@
 
                 while (!token.IsCancellationRequested)
                 {
-                    NetworkConnection client = null;
-
+                    Socket socket = null;
                     try
                     {
-                        Socket socket = _listener.Accept();
+                        socket = _listener.Accept();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex);
+                        break;
+                    }
 
+                    NetworkConnection client = null;
+                    try
+                    {
                         if (!_connections.TryAdd(socket.RemoteEndPoint, client = new NetworkConnection(socket)))
                             continue;
 
@@ -122,12 +122,10 @@
 
         public void Stop()
         {
-            if (Interlocked.CompareExchange(ref _active, DISABLE, ENABLED) == DISABLE)
-                return;
+            _listener?.Close();
 
             FreeToken();
-
-            _listener.Close();
+            FreeSocket();
         }
 
         public void Send(IPEndPoint remote, byte[] bytes)
@@ -162,6 +160,18 @@
 
             cancelation.Cancel();
             cancelation.Dispose();
+        }
+
+        private void FreeSocket()
+        {
+            var socket = _listener;
+            if (socket == null)
+                return;
+
+            _listener = null;
+
+            socket.Close();
+            socket.Dispose();
         }
 
         protected void Dispose(bool disposing)

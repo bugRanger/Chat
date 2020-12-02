@@ -93,6 +93,7 @@
                     catch (Exception ex)
                     {
                         _logger.Error(ex);
+                        break;
                     }
 
                     if (received == 0)

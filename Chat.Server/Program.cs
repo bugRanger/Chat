@@ -12,7 +12,7 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Press key:\r\n S - stop\r\n Q - exit");
 
             var provider = new NetworkService();
             var watcher = new ActivityWatcher(provider)
@@ -25,11 +25,24 @@
             watcher.Start();
 
             // TODO Add network interfaces.
-            provider
-                .StartAsync(new IPEndPoint(IPAddress.Any, 30010))
-                .Wait();
+            _ = provider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
 
-            Console.ReadKey();
+            while (true)
+            {
+                var key = Console.ReadKey();
+                switch (key.Key)
+                {
+                    case ConsoleKey.Q:
+                        return;
+
+                    case ConsoleKey.S:
+                        provider.Stop();
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }
     }
 }

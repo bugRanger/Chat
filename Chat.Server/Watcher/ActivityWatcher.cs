@@ -13,9 +13,6 @@
 
         private const int CHECK_INTERVAL = 100;
 
-        private const int ENABLED = 1;
-        private const int DISABLE = 0;
-
         #endregion Constants
 
         #region Fields
@@ -25,7 +22,6 @@
         private readonly long _interval;
 
         private CancellationTokenSource _cancellationToken;
-        private int _active;
 
         #endregion Fields
 
@@ -45,8 +41,6 @@
             _network.ConnectionAccepted += OnConnectionAccepted;
             _network.ConnectionClosing += OnConnectionClosing;
             _network.PreparePacket += OnPreparePacket;
-
-            _active = DISABLE;
         }
 
         #endregion Constructors
@@ -60,9 +54,6 @@
 
         public async Task StartAsync()
         {
-            if (Interlocked.CompareExchange(ref _active, ENABLED, DISABLE) == ENABLED)
-                return;
-
             _cancellationToken = new CancellationTokenSource();
 
             var token = _cancellationToken.Token;
@@ -96,9 +87,6 @@
 
         public void Stop()
         {
-            if (Interlocked.CompareExchange(ref _active, DISABLE, ENABLED) == DISABLE)
-                return;
-
             _cancellationToken.Cancel();
         }
 
