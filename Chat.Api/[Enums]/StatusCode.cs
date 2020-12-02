@@ -10,5 +10,6 @@
         UserNotFound,
         AuthDuplicate,
         UnknownMessage,
+        NotAuthorized,
     }
 }

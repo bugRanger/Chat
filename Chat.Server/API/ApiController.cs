@@ -107,7 +107,7 @@
 
             if (!_authorization.TryGet(remote, out _))
             {
-                status = StatusCode.Failure;
+                status = StatusCode.NotAuthorized;
                 reason = "User is not logged in";
             }
 
@@ -148,12 +148,17 @@
             var reason = string.Empty;
 
             IUser source = null;
+            IUser target = null;
 
-            if (!_authorization.TryGet(message.Target, out _) ||
-                !_authorization.TryGet(message.Source, out source))
+            if (!_authorization.TryGet(remote, out source))
+            {
+                status = StatusCode.NotAuthorized;
+                reason = "User is not logged in";
+            }
+           else if (!_authorization.TryGet(message.Target, out target))
             {
                 status = StatusCode.UserNotFound;
-                reason = "Source or target not found.";
+                reason = "Target not found.";
             }
 
             Send(new MessageResponse { Status = status, Reason = reason }, remote);
@@ -164,7 +169,7 @@
 
             message.Source = source.Name;
 
-            Send(message, remote);
+            Send(message, target.Remote);
         }
 
         private void HandleGroupMessage(IPEndPoint remote, MessageBroadcast message)
