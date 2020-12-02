@@ -85,7 +85,16 @@
 
                 while (!token.IsCancellationRequested)
                 {
-                    int received = _stream.Read(buffer, count, PACKET_SIZE - count);
+                    int received = 0;
+                    try
+                    {
+                        received = _stream.Read(buffer, count, PACKET_SIZE - count);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex);
+                    }
+
                     if (received == 0)
                     {
                         break;
@@ -126,6 +135,8 @@
                 return;
 
             Closing?.Invoke(this, inactive);
+
+            _socket.Close();
 
             FreeStream();
             FreeSocket();
