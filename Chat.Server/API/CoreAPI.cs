@@ -10,8 +10,6 @@
     using Chat.Api;
     using Chat.Api.Messages;
 
-    using Chat.Server.Auth;
-
     public class CoreApi : ICoreApi
     {
         #region Fields
@@ -20,29 +18,24 @@
 
         private readonly List<IApiModule> _modules;
         private readonly INetworkСontroller _network;
-        private readonly AuthorizationController _authorization;
+        private readonly IAuthorizationController _authorization;
         private readonly Dictionary<Type, Action<IPEndPoint, IMessage>> _messages;
 
         #endregion Fields
 
         #region Constructors
 
-        public CoreApi(INetworkСontroller network)
+        public CoreApi(INetworkСontroller network, IAuthorizationController authorization)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
+            _modules = new List<IApiModule>();
             _messages = new Dictionary<Type, Action<IPEndPoint, IMessage>>();
-            _authorization = new AuthorizationController();
 
+            _authorization = authorization;
             _network = network;
             _network.PreparePacket += OnPreparePacket;
             _network.ConnectionClosing += OnConnectionClosing;
-
-            _modules = new List<IApiModule>
-            {
-                new AuthApi(this, _authorization),
-                new TextApi(this, _authorization),
-            };
         }
 
         #endregion Constructors
@@ -66,6 +59,12 @@
         public void Disconnect(IPEndPoint remote)
         {
             _network.Disconnect(remote, false);
+        }
+
+        public ICoreApi Append(Func<ICoreApi, IApiModule> prepareModule) 
+        {
+            _modules.Add(prepareModule(this));
+            return this;
         }
 
         public void Registration<T>(Action<IPEndPoint, T> action)
