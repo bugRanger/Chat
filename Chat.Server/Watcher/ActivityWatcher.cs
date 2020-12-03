@@ -19,7 +19,6 @@
 
         private readonly INetworkСontroller _network;
         private readonly ConcurrentDictionary<IPEndPoint, long> _remoteToLastActive;
-        private readonly long _interval;
 
         private CancellationTokenSource _cancellationToken;
 
@@ -66,7 +65,7 @@
 
                     foreach (var item in connections)
                     {
-                        if (item.Value + _interval > time)
+                        if (item.Value + Interval > time)
                             continue;
 
                         try
@@ -79,7 +78,7 @@
                         }
                     }
 
-                    await Task.Delay((int)(Interval ?? CHECK_INTERVAL));
+                    await Task.Delay(CHECK_INTERVAL);
                 }
             },
             token);
