@@ -68,14 +68,8 @@
                         if (item.Value + Interval > time)
                             continue;
 
-                        try
-                        {
+                        if (_remoteToLastActive.TryRemove(item.Key, out _))
                             _network.Disconnect(item.Key, true);
-                        }
-                        finally
-                        {
-                            _remoteToLastActive.TryRemove(item.Key, out _);
-                        }
                     }
 
                     await Task.Delay(CHECK_INTERVAL);
@@ -96,15 +90,12 @@
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)
         {
-            if (inactive)
-                return;
-
             _remoteToLastActive.TryRemove(remote, out _);
         }
 
         private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
         {
-            OnConnectionAccepted(remote);
+            _remoteToLastActive[remote] = GetTime();
         }
 
         private long GetTime() => DateTime.Now.ToFileTimeUtc();
