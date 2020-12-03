@@ -13,7 +13,7 @@
 
         void Disconnect(IPEndPoint remote);
 
-        public ICoreApi Append(Func<ICoreApi, IApiModule> prepareModule);
+        public void Append(IApiModule module);
 
         void Registration<T>(Action<IPEndPoint, T> action) where T : IMessage;
 

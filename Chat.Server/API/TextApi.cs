@@ -21,6 +21,7 @@
         {
             _users = users;
             _core = core;
+            _core.Append(this);
             _core.Registration<MessageBroadcast>(HandleMessage);
         }
 

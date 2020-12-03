@@ -23,6 +23,7 @@
             _core = core;
             _authorization = authorization;
 
+            _core.Append(this);
             _core.Registration<AuthorizationBroadcast>(HandleAuthorization);
             _core.Registration<UnauthorizationBroadcast>(HandleUnauthorization);
         }

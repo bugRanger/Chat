@@ -61,10 +61,9 @@
             _network.Disconnect(remote, false);
         }
 
-        public ICoreApi Append(Func<ICoreApi, IApiModule> prepareModule) 
+        public void Append(IApiModule module) 
         {
-            _modules.Add(prepareModule(this));
-            return this;
+            _modules.Add(module);
         }
 
         public void Registration<T>(Action<IPEndPoint, T> action)

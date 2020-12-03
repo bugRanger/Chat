@@ -22,9 +22,9 @@
 
             var auth = new AuthorizationController();
 
-            new CoreApi(provider, auth)
-                .Append(core => new AuthApi(core, auth))
-                .Append(core => new TextApi(core, auth));
+            var core = new CoreApi(provider, auth);
+            new AuthApi(core, auth);
+            new TextApi(core, auth);
 
             watcher.Start();
 
