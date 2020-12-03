@@ -32,7 +32,10 @@
             _typeToMessage = new Dictionary<Type, string>();
 
             Register("auth", typeof(AuthorizationBroadcast));
+            Register("unauth", typeof(UnauthorizationBroadcast));
+            Register("users", typeof(UsersBroadcast));
             Register("message", typeof(MessageBroadcast));
+            Register("disconnect", typeof(DisconnectBroadcast));
         }
 
         #endregion Constructors
