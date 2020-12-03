@@ -13,8 +13,6 @@
         #region Constants
 
         private const int PACKET_SIZE = ushort.MaxValue;
-        private const int ENABLED = 1;
-        private const int DISABLE = 0;
 
         #endregion Constants
 
@@ -25,7 +23,6 @@
         private Socket _socket;
         private NetworkStream _stream;
         private bool _disposed;
-        private int _active;
 
         #endregion Fields
 
@@ -47,7 +44,6 @@
         {
             _logger = LogManager.GetCurrentClassLogger();
 
-            _active = ENABLED;
             _socket = socket;
             _stream = new NetworkStream(socket);
 
@@ -132,9 +128,6 @@
 
         public void Disconnect(bool inactive)
         {
-            if (Interlocked.CompareExchange(ref _active, DISABLE, ENABLED) == DISABLE)
-                return;
-
             Closing?.Invoke(this, inactive);
 
             _socket.Close();
