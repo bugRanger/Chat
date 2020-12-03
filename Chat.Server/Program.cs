@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Net.Sockets;
 
     using Chat.Server.API;
     using Chat.Server.Auth;
@@ -14,7 +15,8 @@
         {
             Console.WriteLine("Press key:\r\n S - stop\r\n Q - exit");
 
-            var provider = new NetworkService();
+            var provider = new NetworkService(() => new NetworkSocket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+
             var watcher = new ActivityWatcher(provider)
             {
                 Interval = 15000,

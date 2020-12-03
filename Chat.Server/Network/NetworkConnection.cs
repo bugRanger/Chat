@@ -1,8 +1,8 @@
 ﻿namespace Chat.Server.Network
 {
     using System;
+    using System.IO;
     using System.Net;
-    using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -20,8 +20,8 @@
 
         private readonly ILogger _logger;
 
-        private Socket _socket;
-        private NetworkStream _stream;
+        private ISocket _socket;
+        private Stream _stream;
         private bool _disposed;
 
         #endregion Fields
@@ -40,12 +40,12 @@
 
         #region Constructors
 
-        public NetworkConnection(Socket socket)
+        public NetworkConnection(ISocket socket)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
             _socket = socket;
-            _stream = new NetworkStream(socket);
+            _stream = socket.GetStream();
 
             RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
         }
@@ -138,7 +138,7 @@
 
         private void FreeStream()
         {
-            NetworkStream stream = _stream;
+            Stream stream = _stream;
             if (stream == null)
                 return;
 

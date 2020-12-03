@@ -21,9 +21,10 @@
 
         private readonly ILogger _logger;
 
+        private readonly Func<ISocket> _socketFactory;
         private readonly ConcurrentDictionary<EndPoint, IConnection> _connections;
 
-        private Socket _listener;
+        private ISocket _listener;
         private CancellationTokenSource _cancelation;
 
         private bool _disposing;
@@ -40,10 +41,11 @@
 
         #region Constructors
 
-        public NetworkService()
+        public NetworkService(Func<ISocket> socketFactory)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
+            _socketFactory = socketFactory;
             _connections = new ConcurrentDictionary<EndPoint, IConnection>();
         }
 
@@ -69,7 +71,7 @@
 
         public async Task StartAsync(IPEndPoint endPoint, int limit = 1)
         {
-            _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _listener = _socketFactory();
             _listener.Bind(endPoint);
 
             _cancelation = new CancellationTokenSource();
@@ -82,7 +84,7 @@
 
                 while (!token.IsCancellationRequested)
                 {
-                    Socket socket = null;
+                    ISocket socket = null;
                     try
                     {
                         socket = _listener.Accept();
