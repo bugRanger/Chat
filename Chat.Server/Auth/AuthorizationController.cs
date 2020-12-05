@@ -36,6 +36,11 @@
                 {
                     user = new User();
                 }
+                else
+                {
+                    _remoteToUser.Remove(user.Remote);
+                    _nameToUser.Remove(user.Name);
+                }
 
                 update((User)user);
 
@@ -70,9 +75,9 @@
             return _remoteToUser.TryGetValue(endPoint, out user);
         }
 
-        public IUser[] GetUsers()
+        public IUser[] GetUsers(Func<IUser, bool> prepare = null)
         {
-            return _nameToUser.Values.ToArray();
+            return _nameToUser.Values.Where(s => prepare?.Invoke(s) ?? true).ToArray();
         }
 
         #endregion Methods

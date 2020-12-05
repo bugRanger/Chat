@@ -22,11 +22,7 @@
                 Interval = 15000,
             };
 
-            var auth = new AuthorizationController();
-
-            var core = new CoreApi(provider, auth);
-            new AuthApi(core, auth);
-            new TextApi(core, auth);
+            var core = new CoreApi(provider, new AuthorizationController());
 
             watcher.Start();
 

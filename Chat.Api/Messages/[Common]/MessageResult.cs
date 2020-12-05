@@ -4,7 +4,7 @@
 
     using Newtonsoft.Json;
 
-    public class MessageResponse : IMessage
+    public class MessageResult : IMessage
     {
         [JsonProperty(nameof(Status))]
         public StatusCode Status { get; set; }

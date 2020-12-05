@@ -4,8 +4,11 @@
 
     using Newtonsoft.Json;
 
-    public class MessageRequest
+    public class MessageContainer
     {
+        [JsonProperty(nameof(Id))]
+        public int Id { get; set; }
+
         [JsonProperty(nameof(Type))]
         public string Type { get; set; }
 

@@ -8,7 +8,7 @@
     using Newtonsoft.Json;
 
     using Chat.Api.Messages;
-
+    
     public static class PacketFactory
     {
         #region Constants
@@ -34,6 +34,7 @@
             Register("auth", typeof(AuthorizationBroadcast));
             Register("unauth", typeof(UnauthorizationBroadcast));
             Register("users", typeof(UsersBroadcast));
+            Register("result", typeof(MessageResult));
             Register("message", typeof(MessageBroadcast));
             Register("disconnect", typeof(DisconnectBroadcast));
         }
@@ -42,30 +43,26 @@
 
         #region Methods
 
-        public static bool TryPack(IMessage payload, out byte[] buffer) 
+        public static bool TryPack(int index, IMessage payload, out byte[] buffer) 
         {
             buffer = null;
 
             if (!_typeToMessage.TryGetValue(payload.GetType(), out string key))
                 return false;
 
-            var message = JsonConvert.SerializeObject(new MessageRequest
+            var message = JsonConvert.SerializeObject(new MessageContainer
             {
+                Id = index,
                 Type = key,
                 Payload = payload,
             });
 
-            buffer = Encoding.UTF8.GetBytes(message);
-
-            buffer =
-                BitConverter.GetBytes((ushort)buffer.Length)
-                .Concat(buffer)
-                .ToArray();
+            buffer = Pack(message);
 
             return true;
         }
 
-        public static bool TryUnpack(byte[] buffer, ref int offset, int count, out MessageRequest request)
+        public static bool TryUnpack(byte[] buffer, ref int offset, int count, out MessageContainer request)
         {
             request = null;
 
@@ -78,7 +75,7 @@
 
             var message = Encoding.UTF8.GetString(buffer, HEADER_SIZE, length);
 
-            request = JsonConvert.DeserializeObject<MessageRequest>(message);
+            request = JsonConvert.DeserializeObject<MessageContainer>(message);
 
             if (!_messageToType.TryGetValue(request.Type, out Type type))
                 return false;
@@ -87,6 +84,17 @@
 
             offset += HEADER_SIZE + length;
             return true;
+        }
+
+        internal static byte[] Pack(string message)
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            bytes =
+                BitConverter.GetBytes((ushort)bytes.Length)
+                .Concat(bytes)
+                .ToArray();
+
+            return bytes;
         }
 
         private static void Register(string key, Type type)

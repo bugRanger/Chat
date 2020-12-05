@@ -23,7 +23,6 @@
             _core = core;
             _authorization = authorization;
 
-            _core.Append(this);
             _core.Registration<AuthorizationBroadcast>(HandleAuthorization);
             _core.Registration<UnauthorizationBroadcast>(HandleUnauthorization);
         }
@@ -32,22 +31,24 @@
 
         #region Methods
 
-        private void HandleAuthorization(IPEndPoint remote, AuthorizationBroadcast request)
+        private void HandleAuthorization(IPEndPoint remote, int index, AuthorizationBroadcast request)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;
 
+            IUser user = null;
             IUser[] users = null;
             IPEndPoint[] remotes = null;
 
-            if (_authorization.TryGet(remote, out _))
+            if (_authorization.TryGet(request.User, out _) 
+                || (_authorization.TryGet(remote, out user) && user.Name == request.User))
             {
                 status = StatusCode.AuthDuplicate;
                 reason = "User exists";
             }
             else
             {
-                users = _authorization.GetUsers();
+                users = _authorization.GetUsers(s => s.Remote != remote);
                 remotes = users
                     .Select(s => s.Remote)
                     .ToArray();
@@ -56,20 +57,22 @@
                 {
                     s.Remote = remote;
                     s.Name = request.User;
+
+                    user = s;
                 });
             }
 
-            _core.Send(new MessageResponse { Status = status, Reason = reason }, remote);
+            _core.Send(new MessageResult { Status = status, Reason = reason }, remote, index);
             if (status != StatusCode.Success)
             {
                 return;
             }
 
             _core.Send(new UsersBroadcast { Users = users.Select(GetUserDetail).ToArray() }, remote);
-            _core.Send(request, remotes);
+            _core.Send(new UsersBroadcast { Users = new[] { GetUserDetail(user) } }, remotes);
         }
 
-        private void HandleUnauthorization(IPEndPoint remote, UnauthorizationBroadcast request)
+        private void HandleUnauthorization(IPEndPoint remote, int index, UnauthorizationBroadcast request)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;
@@ -80,16 +83,13 @@
                 reason = "User is not logged in";
             }
 
-            if (status == StatusCode.Success)
-            {
-                _core.Disconnect(remote);
-            }
-
-            _core.Send(new MessageResponse { Status = status, Reason = reason }, remote);
+            _core.Send(new MessageResult { Status = status, Reason = reason }, remote, index);
             if (status != StatusCode.Success)
             {
                 return;
             }
+
+            _core.Disconnect(remote);
 
             var remotes = _authorization
                 .GetUsers()

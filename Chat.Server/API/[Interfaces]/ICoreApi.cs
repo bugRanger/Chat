@@ -11,11 +11,11 @@
 
         void Send(IMessage message, params IPEndPoint[] remotes);
 
+        void Send(IMessage message, IPEndPoint remote, int index);
+
         void Disconnect(IPEndPoint remote);
 
-        public void Append(IApiModule module);
-
-        void Registration<T>(Action<IPEndPoint, T> action) where T : IMessage;
+        void Registration<T>(Action<IPEndPoint, int, T> action) where T : IMessage;
 
         #endregion Methods
     }

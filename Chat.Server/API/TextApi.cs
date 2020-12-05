@@ -19,9 +19,9 @@
 
         public TextApi(ICoreApi core, IUserContainer users)
         {
-            _users = users;
             _core = core;
-            _core.Append(this);
+            _users = users;
+
             _core.Registration<MessageBroadcast>(HandleMessage);
         }
 
@@ -29,19 +29,19 @@
 
         #region Methods
 
-        private void HandleMessage(IPEndPoint remote, MessageBroadcast message)
+        private void HandleMessage(IPEndPoint remote, int index, MessageBroadcast message)
         {
             if (string.IsNullOrWhiteSpace(message.Target))
             {
-                HandleGroupMessage(remote, message);
+                HandleGroupMessage(remote, index, message);
             }
             else
             {
-                HandlePrivateMessage(remote, message);
+                HandlePrivateMessage(remote, index, message);
             }
         }
 
-        private void HandlePrivateMessage(IPEndPoint remote, MessageBroadcast message)
+        private void HandlePrivateMessage(IPEndPoint remote, int index, MessageBroadcast message)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;
@@ -60,7 +60,7 @@
                 reason = "Target not found";
             }
 
-            _core.Send(new MessageResponse { Status = status, Reason = reason }, remote);
+            _core.Send(new MessageResult { Status = status, Reason = reason }, remote, index);
             if (status != StatusCode.Success)
             {
                 return;
@@ -71,9 +71,9 @@
             _core.Send(message, target.Remote);
         }
 
-        private void HandleGroupMessage(IPEndPoint remote, MessageBroadcast message)
+        private void HandleGroupMessage(IPEndPoint remote, int index, MessageBroadcast message)
         {
-            _core.Send(new MessageResponse { Status = StatusCode.Failure, Reason = "Not supported" }, remote);
+            _core.Send(new MessageResult { Status = StatusCode.Failure, Reason = "Not supported" }, remote, index);
         }
         
         #endregion Methods

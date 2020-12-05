@@ -11,7 +11,7 @@
 
         bool TryGet(IPEndPoint endPoint, out IUser user);
 
-        IUser[] GetUsers();
+        IUser[] GetUsers(Func<IUser, bool> prepare = null);
 
         #endregion Methods
     }
