@@ -75,9 +75,12 @@
             return _remoteToUser.TryGetValue(endPoint, out user);
         }
 
-        public IUser[] GetUsers(Func<IUser, bool> prepare = null)
+        public IEnumerable<IUser> GetUsers()
         {
-            return _nameToUser.Values.Where(s => prepare?.Invoke(s) ?? true).ToArray();
+            lock (_locker)
+            {
+                return new List<IUser>(_nameToUser.Values);
+            }
         }
 
         #endregion Methods

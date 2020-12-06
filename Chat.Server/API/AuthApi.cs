@@ -6,6 +6,7 @@
 
     using Chat.Api;
     using Chat.Api.Messages;
+    using System.Collections.Generic;
 
     public class AuthApi : IApiModule
     {
@@ -37,8 +38,8 @@
             var reason = string.Empty;
 
             IUser user = null;
-            IUser[] users = null;
-            IPEndPoint[] remotes = null;
+            IEnumerable<IUser> users = null;
+            IEnumerable<IPEndPoint> remotes = null;
 
             if (_authorization.TryGet(request.User, out _) 
                 || (_authorization.TryGet(remote, out user) && user.Name == request.User))
@@ -48,10 +49,8 @@
             }
             else
             {
-                users = _authorization.GetUsers(s => s.Remote != remote);
-                remotes = users
-                    .Select(s => s.Remote)
-                    .ToArray();
+                users = _authorization.GetUsers().Where(s => s.Remote != remote);
+                remotes = users.Select(s => s.Remote);
 
                 _authorization.AddOrUpdate(remote, s =>
                 {
@@ -69,7 +68,7 @@
             }
 
             _core.Send(new UsersBroadcast { Users = users.Select(GetUserDetail).ToArray() }, remote);
-            _core.Send(new UsersBroadcast { Users = new[] { GetUserDetail(user) } }, remotes);
+            _core.Send(new UsersBroadcast { Users = new[] { GetUserDetail(user) } }, remotes.ToArray());
         }
 
         private void HandleUnauthorization(IPEndPoint remote, int index, UnauthorizationBroadcast request)

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Collections.Generic;
 
     public interface IUserContainer
     {
@@ -11,7 +12,7 @@
 
         bool TryGet(IPEndPoint endPoint, out IUser user);
 
-        IUser[] GetUsers(Func<IUser, bool> prepare = null);
+        IEnumerable<IUser> GetUsers();
 
         #endregion Methods
     }
