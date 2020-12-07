@@ -6,3 +6,5 @@ Chat.Server/bin/
 Chat.Server/obj/
 Chat.Tests/bin/
 Chat.Tests/obj/
+/Chat.Media/obj
+/Chat.Media/bin/Debug/netcoreapp3.1

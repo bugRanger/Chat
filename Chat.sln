@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Server", "Chat.Server\Chat.Server.csproj", "{60099116-CE80-43B3-8C57-36831DAB3A48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Server", "Chat.Server\Chat.Server.csproj", "{60099116-CE80-43B3-8C57-36831DAB3A48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Tests", "Chat.Tests\Chat.Tests.csproj", "{F9EAAD4D-7E20-41C3-B861-60A87A46D116}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Tests", "Chat.Tests\Chat.Tests.csproj", "{F9EAAD4D-7E20-41C3-B861-60A87A46D116}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Api", "Chat.Api\Chat.Api.csproj", "{42BB46F5-5582-4AD2-ACCB-B1185909D9EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Api", "Chat.Api\Chat.Api.csproj", "{42BB46F5-5582-4AD2-ACCB-B1185909D9EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Media", "Chat.Media\Chat.Media.csproj", "{A0004333-48DE-4181-8771-2E21682AA60F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{42BB46F5-5582-4AD2-ACCB-B1185909D9EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42BB46F5-5582-4AD2-ACCB-B1185909D9EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42BB46F5-5582-4AD2-ACCB-B1185909D9EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0004333-48DE-4181-8771-2E21682AA60F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0004333-48DE-4181-8771-2E21682AA60F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0004333-48DE-4181-8771-2E21682AA60F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0004333-48DE-4181-8771-2E21682AA60F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
