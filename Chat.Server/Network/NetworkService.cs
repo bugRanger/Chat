@@ -25,7 +25,7 @@
         private readonly ConcurrentDictionary<EndPoint, IConnection> _connections;
 
         private ISocket _listener;
-        private CancellationTokenSource _cancelation;
+        private CancellationTokenSource _cancellation;
 
         private bool _disposing;
 
@@ -74,13 +74,13 @@
             _listener = _socketFactory();
             _listener.Bind(endPoint);
 
-            _cancelation = new CancellationTokenSource();
+            _cancellation = new CancellationTokenSource();
 
             await Task.Run(async () =>
             {
                 _listener.Listen(limit);
 
-                var token = _cancelation.Token;
+                var token = _cancellation.Token;
 
                 while (!token.IsCancellationRequested)
                 {
@@ -154,14 +154,14 @@
 
         private void FreeToken()
         {
-            var cancelation = _cancelation;
-            if (cancelation == null)
+            var cancellation = _cancellation;
+            if (cancellation == null)
                 return;
 
-            _cancelation = null;
+            _cancellation = null;
 
-            cancelation.Cancel();
-            cancelation.Dispose();
+            cancellation.Cancel();
+            cancellation.Dispose();
         }
 
         private void FreeSocket()
