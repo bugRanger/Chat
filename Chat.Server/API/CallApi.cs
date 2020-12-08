@@ -4,6 +4,26 @@
 
     using Chat.Server.Call;
 
+    //	+--------+			+--------+			+--------+
+    //	| Source |			| Server |			| Target |
+    //	+--------+			+--------+			+--------+
+    //		|					|					|
+    //		|----{request}----->|					|
+    //		|<---{response}-----|					|
+    //		|					|	  Calling		|
+    //		|	  Calling		|----{broadcast}--->|
+    //		|<---{broadcast}----|					|
+    //		|					|					|
+    //		|					|<---{request}------|
+    //		|					|----{response}---->|
+    //		|					|					|
+    //		|					|	   Active		|
+    //		|	   Active		|----{broadcast}--->|
+    //		|<---{broadcast}----|					|
+    //		|					|					|
+    //		|					|					|
+
+
     public class CallApi : IApiModule
     {
         #region Fields
