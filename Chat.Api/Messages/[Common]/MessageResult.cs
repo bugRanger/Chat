@@ -3,12 +3,13 @@
     using System;
 
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class MessageResult : IMessage, IEquatable<MessageResult>
     {
         #region Properties
 
-        [JsonProperty(nameof(Status))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public StatusCode Status { get; set; }
 
         [JsonProperty(nameof(Reason))]

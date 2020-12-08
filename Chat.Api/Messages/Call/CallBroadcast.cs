@@ -3,6 +3,7 @@
     using System;
 
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class CallBroadcast : IMessage, IEquatable<CallBroadcast>
     {
@@ -17,6 +18,9 @@
         [JsonProperty(nameof(Target))]
         public string Target { get; set; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
+        public CallState State { get; set; }
+
         #endregion Properties
 
         #region Methods
@@ -27,6 +31,7 @@
                 other != null &&
                 Source == other.Source &&
                 Target == other.Target &&
+                State == other.State &&
                 CallId == other.CallId;
         }
 

@@ -21,7 +21,7 @@ namespace Chat.Tests
             new TestCaseData("auth", "\"User\":\"User1\"", new AuthorizationRequest { User = "User1" }),
             new TestCaseData("unauth", "", new UnauthorizationRequest()),
 
-            new TestCaseData("result", "\"Status\":0,\"Reason\":\"\"", new MessageResult { Status = StatusCode.Success, Reason = ""}),
+            new TestCaseData("result", "\"Status\":\"Success\",\"Reason\":\"\"", new MessageResult { Status = StatusCode.Success, Reason = ""}),
 
             new TestCaseData("users", "\"Users\":[\"User1\",\"User2\"]", new UsersBroadcast { Users = new []{ "User1", "User2" } }),
             new TestCaseData("userOffline", "\"User\":\"User1\"", new UserOfflineBroadcast { User = "User1" }),
@@ -34,8 +34,8 @@ namespace Chat.Tests
                 "call-request", "\"Source\":\"User1\",\"Target\":\"User2\",\"MediaPort\":888", 
                 new CallRequest { Source = "User1", Target = "User2", MediaPort = 888 }),
             new TestCaseData(
-                "call-broadcast", "\"CallId\":1,\"Source\":\"User1\",\"Target\":\"User2\"", 
-                new CallBroadcast { CallId = 1, Source = "User1", Target = "User2" }),
+                "call-broadcast", "\"CallId\":1,\"Source\":\"User1\",\"Target\":\"User2\",\"State\":\"Calling\"", 
+                new CallBroadcast { CallId = 1, Source = "User1", Target = "User2", State = CallState.Calling }),
             new TestCaseData(
                 "call-response", "\"CallId\":1,\"MediaId\":123", 
                 new CallResponse { CallId = 1, MediaId = 123 }),
