@@ -1,4 +1,4 @@
-﻿namespace Chat.Api.Messages
+﻿namespace Chat.Api.Messages.Text
 {
     using System;
 

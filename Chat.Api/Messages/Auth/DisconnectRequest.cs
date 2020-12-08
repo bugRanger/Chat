@@ -1,10 +1,10 @@
-﻿namespace Chat.Api.Messages
+﻿namespace Chat.Api.Messages.Auth
 {
     using System;
 
     using Newtonsoft.Json;
 
-    public class AuthorizationBroadcast : IMessage, IEquatable<AuthorizationBroadcast>
+    public class DisconnectRequest : IMessage, IEquatable<DisconnectRequest>
     {
         #region Properties
 
@@ -15,7 +15,7 @@
 
         #region Methods
 
-        public bool Equals(AuthorizationBroadcast other)
+        public bool Equals(DisconnectRequest other)
         {
             return User == other?.User;
         }

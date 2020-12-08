@@ -8,6 +8,8 @@
     using Newtonsoft.Json;
 
     using Chat.Api.Messages;
+    using Chat.Api.Messages.Auth;
+    using Chat.Api.Messages.Text;
     
     public static class PacketFactory
     {
@@ -31,12 +33,12 @@
             _messageToType = new Dictionary<string, Type>();
             _typeToMessage = new Dictionary<Type, string>();
 
-            Register("auth", typeof(AuthorizationBroadcast));
-            Register("unauth", typeof(UnauthorizationBroadcast));
+            Register("auth", typeof(AuthorizationRequest));
+            Register("unauth", typeof(UnauthorizationRequest));
             Register("users", typeof(UsersBroadcast));
             Register("result", typeof(MessageResult));
             Register("message", typeof(MessageBroadcast));
-            Register("disconnect", typeof(DisconnectBroadcast));
+            Register("disconnect", typeof(DisconnectRequest));
         }
 
         #endregion Constructors

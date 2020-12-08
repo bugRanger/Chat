@@ -8,6 +8,8 @@ namespace Chat.Tests
 
     using Chat.Api;
     using Chat.Api.Messages;
+    using Chat.Api.Messages.Auth;
+    using Chat.Api.Messages.Text;
 
     public class PacketApiTests
     {
@@ -15,11 +17,11 @@ namespace Chat.Tests
 
         private static TestCaseData[] Messages =
         {
-            new TestCaseData("auth", "\"User\":\"User1\"", new AuthorizationBroadcast { User = "User1" }),
-            new TestCaseData("unauth", "", new UnauthorizationBroadcast()),
+            new TestCaseData("auth", "\"User\":\"User1\"", new AuthorizationRequest { User = "User1" }),
+            new TestCaseData("unauth", "", new UnauthorizationRequest()),
             new TestCaseData("users", "\"Users\":[\"User1\",\"User2\"]", new UsersBroadcast { Users = new []{ "User1", "User2" } }),
             new TestCaseData("result", "\"Status\":0,\"Reason\":\"\"", new MessageResult { Status = StatusCode.Success, Reason = ""}),
-            new TestCaseData("disconnect", "\"User\":\"User1\"", new DisconnectBroadcast { User = "User1" }),
+            new TestCaseData("disconnect", "\"User\":\"User1\"", new DisconnectRequest { User = "User1" }),
             new TestCaseData("message", "\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"Hi!\"",
                 new MessageBroadcast { Source = "User1", Target = "User2", Message = "Hi!" }),
         };

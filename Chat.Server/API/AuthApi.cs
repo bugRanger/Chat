@@ -3,10 +3,11 @@
     using System;
     using System.Net;
     using System.Linq;
+    using System.Collections.Generic;
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using System.Collections.Generic;
+    using Chat.Api.Messages.Auth;
 
     public class AuthApi : IApiModule
     {
@@ -24,15 +25,15 @@
             _core = core;
             _authorization = authorization;
 
-            _core.Registration<AuthorizationBroadcast>(HandleAuthorization);
-            _core.Registration<UnauthorizationBroadcast>(HandleUnauthorization);
+            _core.Registration<AuthorizationRequest>(HandleAuthorization);
+            _core.Registration<UnauthorizationRequest>(HandleUnauthorization);
         }
 
         #endregion Constructors
 
         #region Methods
 
-        private void HandleAuthorization(IPEndPoint remote, int index, AuthorizationBroadcast request)
+        private void HandleAuthorization(IPEndPoint remote, int index, AuthorizationRequest request)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;
@@ -71,7 +72,7 @@
             _core.Send(new UsersBroadcast { Users = new[] { GetUserDetail(user) } }, remotes.ToArray());
         }
 
-        private void HandleUnauthorization(IPEndPoint remote, int index, UnauthorizationBroadcast request)
+        private void HandleUnauthorization(IPEndPoint remote, int index, UnauthorizationRequest request)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;

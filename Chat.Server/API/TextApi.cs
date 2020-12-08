@@ -5,6 +5,7 @@
 
     using Chat.Api;
     using Chat.Api.Messages;
+    using Chat.Api.Messages.Text;
 
     public class TextApi : IApiModule
     {

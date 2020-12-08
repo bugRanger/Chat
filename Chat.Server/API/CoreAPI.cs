@@ -9,6 +9,7 @@
 
     using Chat.Api;
     using Chat.Api.Messages;
+    using Chat.Api.Messages.Auth;
 
 
     delegate void HandleMessage(IPEndPoint remote, int index, IMessage message);
@@ -121,7 +122,7 @@
                 .Select(s => s.Remote)
                 .ToArray();
 
-            Send(new DisconnectBroadcast { User = user.Name }, remotes);
+            Send(new DisconnectRequest { User = user.Name }, remotes);
         }
 
         #endregion Methods
