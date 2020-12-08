@@ -4,7 +4,8 @@
 
     using Newtonsoft.Json;
 
-    public class DisconnectRequest : IMessage, IEquatable<DisconnectRequest>
+    // TODO Replace user detail change offline, reason - kick server.
+    public class UserOfflineBroadcast : IMessage, IEquatable<UserOfflineBroadcast>
     {
         #region Properties
 
@@ -15,7 +16,7 @@
 
         #region Methods
 
-        public bool Equals(DisconnectRequest other)
+        public bool Equals(UserOfflineBroadcast other)
         {
             return User == other?.User;
         }

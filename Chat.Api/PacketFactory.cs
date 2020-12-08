@@ -10,7 +10,8 @@
     using Chat.Api.Messages;
     using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Text;
-    
+    using Chat.Api.Messages.Call;
+
     public static class PacketFactory
     {
         #region Constants
@@ -38,7 +39,10 @@
             Register("users", typeof(UsersBroadcast));
             Register("result", typeof(MessageResult));
             Register("message", typeof(MessageBroadcast));
-            Register("disconnect", typeof(DisconnectRequest));
+            Register("userOffline", typeof(UserOfflineBroadcast));
+            Register("call-request", typeof(CallRequest));
+            Register("call-broadcast", typeof(CallBroadcast));
+            Register("call-response", typeof(CallResponse));
         }
 
         #endregion Constructors

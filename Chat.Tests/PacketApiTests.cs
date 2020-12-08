@@ -10,6 +10,7 @@ namespace Chat.Tests
     using Chat.Api.Messages;
     using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Text;
+    using Chat.Api.Messages.Call;
 
     public class PacketApiTests
     {
@@ -19,11 +20,25 @@ namespace Chat.Tests
         {
             new TestCaseData("auth", "\"User\":\"User1\"", new AuthorizationRequest { User = "User1" }),
             new TestCaseData("unauth", "", new UnauthorizationRequest()),
-            new TestCaseData("users", "\"Users\":[\"User1\",\"User2\"]", new UsersBroadcast { Users = new []{ "User1", "User2" } }),
+
             new TestCaseData("result", "\"Status\":0,\"Reason\":\"\"", new MessageResult { Status = StatusCode.Success, Reason = ""}),
-            new TestCaseData("disconnect", "\"User\":\"User1\"", new DisconnectRequest { User = "User1" }),
-            new TestCaseData("message", "\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"Hi!\"",
+
+            new TestCaseData("users", "\"Users\":[\"User1\",\"User2\"]", new UsersBroadcast { Users = new []{ "User1", "User2" } }),
+            new TestCaseData("userOffline", "\"User\":\"User1\"", new UserOfflineBroadcast { User = "User1" }),
+
+            new TestCaseData(
+                "message", "\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"Hi!\"",
                 new MessageBroadcast { Source = "User1", Target = "User2", Message = "Hi!" }),
+
+            new TestCaseData(
+                "call-request", "\"Source\":\"User1\",\"Target\":\"User2\",\"MediaPort\":888", 
+                new CallRequest { Source = "User1", Target = "User2", MediaPort = 888 }),
+            new TestCaseData(
+                "call-broadcast", "\"CallId\":1,\"Source\":\"User1\",\"Target\":\"User2\"", 
+                new CallBroadcast { CallId = 1, Source = "User1", Target = "User2" }),
+            new TestCaseData(
+                "call-response", "\"CallId\":1,\"MediaId\":123", 
+                new CallResponse { CallId = 1, MediaId = 123 }),
         };
 
         private IMessage _message;

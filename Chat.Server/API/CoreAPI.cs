@@ -38,6 +38,7 @@
             {
                 new AuthApi(this, authorization),
                 new TextApi(this, authorization),
+                new CallApi(this, authorization),
             };
 
             _authorization = authorization;
@@ -122,7 +123,7 @@
                 .Select(s => s.Remote)
                 .ToArray();
 
-            Send(new DisconnectRequest { User = user.Name }, remotes);
+            Send(new UserOfflineBroadcast { User = user.Name }, remotes);
         }
 
         #endregion Methods
