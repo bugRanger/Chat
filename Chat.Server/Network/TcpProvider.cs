@@ -9,7 +9,7 @@
 
     using NLog;
 
-    public class NetworkService : INetworkService, INetworkСontroller, IDisposable
+    public class TcpProvider : INetworkProvider, ITcpСontroller, IDisposable
     {
         #region Constants
 
@@ -21,12 +21,13 @@
 
         private readonly ILogger _logger;
 
-        private readonly Func<ISocket> _socketFactory;
-        private readonly ConcurrentDictionary<EndPoint, IConnection> _connections;
+        private readonly SocketFactory _socketFactory;
+        private readonly ConcurrentDictionary<EndPoint, ITcpConnection> _connections;
 
         private ISocket _listener;
         private CancellationTokenSource _cancellation;
 
+        private int _limit;
         private bool _disposing;
 
         #endregion Fields
@@ -41,15 +42,17 @@
 
         #region Constructors
 
-        public NetworkService(Func<ISocket> socketFactory)
+        public TcpProvider(SocketFactory socketFactory, int limit = 1)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
             _socketFactory = socketFactory;
-            _connections = new ConcurrentDictionary<EndPoint, IConnection>();
+            _limit = limit;
+
+            _connections = new ConcurrentDictionary<EndPoint, ITcpConnection>();
         }
 
-        ~NetworkService()
+        ~TcpProvider()
         {
             Dispose(false);
         }
@@ -64,21 +67,21 @@
 
         #region Methods
 
-        public void Start(IPEndPoint endPoint, int limit = 1)
+        public void Start(IPEndPoint endPoint)
         {
-            _ = StartAsync(endPoint, limit);
+            _ = StartAsync(endPoint);
         }
 
-        public async Task StartAsync(IPEndPoint endPoint, int limit = 1)
+        public async Task StartAsync(IPEndPoint endPoint)
         {
-            _listener = _socketFactory();
+            _listener = _socketFactory(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _listener.Bind(endPoint);
 
             _cancellation = new CancellationTokenSource();
 
             await Task.Run(async () =>
             {
-                _listener.Listen(limit);
+                _listener.Listen(_limit);
 
                 var token = _cancellation.Token;
 
@@ -95,10 +98,10 @@
                         break;
                     }
 
-                    NetworkConnection client = null;
+                    TcpConnection client = null;
                     try
                     {
-                        if (!_connections.TryAdd(socket.RemoteEndPoint, client = new NetworkConnection(socket)))
+                        if (!_connections.TryAdd(socket.RemoteEndPoint, client = new TcpConnection(socket)))
                             continue;
 
                         client.Closing += (s, inactive) =>
@@ -132,7 +135,7 @@
 
         public void Send(IPEndPoint remote, byte[] bytes)
         {
-            if (!_connections.TryGetValue(remote, out IConnection connection))
+            if (!_connections.TryGetValue(remote, out ITcpConnection connection))
             {
                 _logger?.Warn($"Send error, connection not found - {remote}");
                 return;
@@ -143,7 +146,7 @@
 
         public void Disconnect(IPEndPoint remote, bool inactive)
         {
-            if (!_connections.TryGetValue(remote, out IConnection connection))
+            if (!_connections.TryGetValue(remote, out ITcpConnection connection))
             {
                 _logger?.Warn($"Disconnet error, connection not found - {remote}");
                 return;

@@ -10,9 +10,9 @@
 
         #region Methods
 
-        public void Start();
+        void Start();
 
-        public void Stop();
+        void Stop();
 
         #endregion Methods
     }

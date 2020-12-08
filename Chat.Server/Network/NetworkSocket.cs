@@ -5,6 +5,8 @@
     using System.Net;
     using System.Net.Sockets;
 
+    public delegate ISocket SocketFactory(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType);
+
     public class NetworkSocket : ISocket
     {
         #region Fields
@@ -48,6 +50,11 @@
 
         #region Methods
 
+        public static NetworkSocket Create(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
+        {
+            return new NetworkSocket(addressFamily, socketType, protocolType);
+        }
+
         public void Bind(EndPoint localEP)
         {
             _socket.Bind(localEP);
@@ -66,6 +73,21 @@
         public Stream GetStream()
         {
             return new NetworkStream(_socket);
+        }
+
+        public int SendTo(byte[] bytes, int offset, int count, EndPoint remote)
+        {
+            return _socket.SendTo(bytes, offset, count, SocketFlags.None, remote);
+        }
+
+        public int ReceiveFrom(byte[] bytes, int offset, int count, ref EndPoint remote)
+        {
+            return _socket.ReceiveFrom(bytes, offset, count, SocketFlags.None, ref remote);
+        }
+
+        public void SetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, bool optionValue)
+        {
+            _socket.SetSocketOption(optionLevel, optionName, optionValue);
         }
 
         public void Close() 

@@ -27,7 +27,7 @@
         private CoreApi _core;
         private AuthorizationController _auth;
 
-        private Mock<INetworkСontroller> _networkMoq;
+        private Mock<ITcpСontroller> _networkMoq;
 
         #endregion Fields
 
@@ -43,7 +43,7 @@
 
             _auth = new AuthorizationController();
 
-            _networkMoq = new Mock<INetworkСontroller>();
+            _networkMoq = new Mock<ITcpСontroller>();
             _networkMoq
                 .Setup(s => s.Send(It.IsAny<IPEndPoint>(), It.IsAny<byte[]>()))
                 .Callback<IPEndPoint, byte[]>((remote, data) => 

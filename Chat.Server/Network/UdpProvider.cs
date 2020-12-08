@@ -1,14 +1,14 @@
 ﻿namespace Chat.Server.Network
 {
     using System;
-    using System.IO;
     using System.Net;
+    using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
 
     using NLog;
 
-    public class NetworkConnection : IConnection, IDisposable
+    public class UdpProvider : INetworkProvider, INetworkСontroller, IDisposable
     {
         #region Constants
 
@@ -20,37 +20,31 @@
 
         private readonly ILogger _logger;
 
-        private ISocket _socket;
-        private Stream _stream;
-        private bool _disposed;
+        private readonly SocketFactory _socketFactory;
+
+        private ISocket _listener;
+        private CancellationTokenSource _cancellation;
+
+        private bool _disposing;
 
         #endregion Fields
 
-        #region Properties
-
-        public IPEndPoint RemoteEndPoint { get; }
-
-        #endregion Properties
-
         #region Events
 
-        public event EventHandler<bool> Closing;
+        public event PreparePacket PreparePacket;
 
         #endregion Events
 
         #region Constructors
 
-        public NetworkConnection(ISocket socket)
+        public UdpProvider(SocketFactory socketFactory)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
-            _socket = socket;
-            _stream = socket.GetStream();
-
-            RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
+            _socketFactory = socketFactory;
         }
 
-        ~NetworkConnection()
+        ~UdpProvider()
         {
             Dispose(false);
         }
@@ -65,14 +59,25 @@
 
         #region Methods
 
-        public void Send(byte[] bytes)
+        public void Start(IPEndPoint endPoint)
         {
-            _stream.Write(bytes, 0, bytes.Length);
+            _ = StartAsync(endPoint);
+        }
+
+        public async Task StartAsync(IPEndPoint endPoint)
+        {
+            _listener = _socketFactory(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _listener.Bind(endPoint);
+
+            _cancellation = new CancellationTokenSource();
+
+            await ListenAsync(PreparePacket, _cancellation.Token);
         }
 
         public async Task ListenAsync(PreparePacket prepare, CancellationToken token)
         {
-            token.Register(() => Disconnect(false));
+            token.Register(() => _listener?.Close());
 
             await Task.Run(() =>
             {
@@ -82,9 +87,11 @@
                 while (!token.IsCancellationRequested)
                 {
                     int received = 0;
+                    EndPoint endPoint = null;
+
                     try
                     {
-                        received = _stream.Read(buffer, count, PACKET_SIZE - count);
+                        received = _listener.ReceiveFrom(buffer, count, PACKET_SIZE - count, ref endPoint);
                     }
                     catch (Exception ex)
                     {
@@ -102,7 +109,7 @@
                     int offset = 0;
                     int position = 0;
 
-                    prepare(RemoteEndPoint, buffer, ref offset, count);
+                    prepare?.Invoke((IPEndPoint)endPoint, buffer, ref offset, count);
 
                     while (offset > position)
                     {
@@ -122,39 +129,42 @@
                         Buffer.BlockCopy(buffer, offset, buffer, 0, count);
                     }
                 }
-            }, 
+            },
             token);
         }
 
-        public void Disconnect(bool inactive)
+        public void Stop()
         {
-            Closing?.Invoke(this, inactive);
+            _listener?.Close();
 
-            _socket.Close();
-
-            FreeStream();
+            FreeToken();
             FreeSocket();
         }
 
-        private void FreeStream()
+        public void Send(IPEndPoint remote, byte[] bytes)
         {
-            Stream stream = _stream;
-            if (stream == null)
+            _listener.SendTo(bytes, 0, bytes.Length, remote);
+        }
+
+        private void FreeToken()
+        {
+            var cancellation = _cancellation;
+            if (cancellation == null)
                 return;
 
-            _stream = null;
+            _cancellation = null;
 
-            stream.Close();
-            stream.Dispose();
+            cancellation.Cancel();
+            cancellation.Dispose();
         }
 
         private void FreeSocket()
         {
-            var socket = _socket;
+            var socket = _listener;
             if (socket == null)
                 return;
 
-            _socket = null;
+            _listener = null;
 
             socket.Close();
             socket.Dispose();
@@ -162,18 +172,15 @@
 
         protected void Dispose(bool disposing)
         {
-            if (_disposed)
-            {
+            if (_disposing)
                 return;
-            }
 
             if (disposing)
             {
-                FreeStream();
-                FreeSocket();
+                FreeToken();
             }
 
-            _disposed = true;
+            _disposing = true;
         }
 
         #endregion Methods

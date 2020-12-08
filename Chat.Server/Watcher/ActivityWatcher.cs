@@ -17,7 +17,7 @@
 
         #region Fields
 
-        private readonly INetworkСontroller _network;
+        private readonly ITcpСontroller _network;
         private readonly ConcurrentDictionary<IPEndPoint, long> _remoteToLastActive;
 
         private CancellationTokenSource _cancellationToken;
@@ -32,7 +32,7 @@
 
         #region Constructors
 
-        public ActivityWatcher(INetworkСontroller network)
+        public ActivityWatcher(ITcpСontroller network)
         {
             _remoteToLastActive = new ConcurrentDictionary<IPEndPoint, long>();
 

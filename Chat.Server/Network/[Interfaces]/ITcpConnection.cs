@@ -3,7 +3,7 @@
     using System;
     using System.Net;
 
-    public interface IConnection
+    public interface ITcpConnection
     {
         #region Properties
 

@@ -21,7 +21,7 @@
         private readonly ILogger _logger;
 
         private readonly List<IApiModule> _modules;
-        private readonly INetworkСontroller _network;
+        private readonly ITcpСontroller _network;
         private readonly IAuthorizationController _authorization;
         private readonly Dictionary<Type, HandleMessage> _messages;
 
@@ -29,7 +29,7 @@
 
         #region Constructors
 
-        public CoreApi(INetworkСontroller network, IAuthorizationController authorization)
+        public CoreApi(ITcpСontroller network, IAuthorizationController authorization)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
