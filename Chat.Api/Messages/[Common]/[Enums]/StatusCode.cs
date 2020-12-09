@@ -5,11 +5,17 @@
     public enum StatusCode
     {
         Success = 0,
-        // TODO Add type errors.
         Failure,
-        UserNotFound,
-        AuthDuplicate,
+
         UnknownMessage,
+
+        UserNotFound,
+
+        AuthDuplicate,
         NotAuthorized,
+
+        CallNotFound,
+
+        CallDuplicate,
     }
 }

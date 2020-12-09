@@ -27,7 +27,7 @@
 
             new AuthApi(core, authorization);
             new TextApi(core, authorization);
-            new CallApi(core, null);
+            new CallApi(core, authorization, null);
 
             watcher.Start();
 

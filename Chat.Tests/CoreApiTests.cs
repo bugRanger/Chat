@@ -13,6 +13,7 @@
     using Chat.Server.API;
     using Chat.Server.Auth;
     using Chat.Api;
+    using Chat.Server.Call;
 
     [TestFixture]
     public class CoreApiTests
@@ -25,7 +26,8 @@
         private List<IPEndPoint> _remotes;
 
         private CoreApi _core;
-        private AuthorizationController _authorization;
+        private ICallingController _calls;
+        private IAuthorizationController _authorization;
 
         private Mock<ITcpСontroller> _networkMoq;
 
@@ -41,6 +43,7 @@
 
             _remotes = new List<IPEndPoint>();
 
+            _calls = new Mock<ICallingController>().Object;
             _authorization = new AuthorizationController();
 
             _networkMoq = new Mock<ITcpСontroller>();
@@ -62,7 +65,7 @@
 
             new AuthApi(_core, _authorization);
             new TextApi(_core, _authorization);
-            new CallApi(_core, null);
+            new CallApi(_core, _authorization, _calls);
         }
 
         #endregion Constructors
