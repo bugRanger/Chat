@@ -43,6 +43,7 @@
             Register("call-request", typeof(CallRequest));
             Register("call-broadcast", typeof(CallBroadcast));
             Register("call-response", typeof(CallResponse));
+            Register("call-reject", typeof(CallRejectRequest));
         }
 
         #endregion Constructors

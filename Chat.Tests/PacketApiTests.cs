@@ -39,6 +39,9 @@ namespace Chat.Tests
             new TestCaseData(
                 "call-response", "\"CallId\":1,\"MediaId\":123", 
                 new CallResponse { CallId = 1, MediaId = 123 }),
+            new TestCaseData(
+                "call-reject", "\"CallId\":1",
+                new CallRejectRequest { CallId = 1 }),
         };
 
         private IMessage _message;
