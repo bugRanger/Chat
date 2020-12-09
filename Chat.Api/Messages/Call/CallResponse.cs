@@ -8,11 +8,11 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(CallId))]
-        public int CallId { get; set; }
+        [JsonProperty(nameof(SessionId))]
+        public int SessionId { get; set; }
 
-        [JsonProperty(nameof(MediaId))]
-        public int MediaId { get; set;  }
+        [JsonProperty(nameof(RouteId))]
+        public int RouteId { get; set;  }
 
         #endregion Properties
 
@@ -22,8 +22,8 @@
         {
             return
                 other != null &&
-                CallId == other.CallId &&
-                MediaId == other.MediaId;
+                SessionId == other.SessionId &&
+                RouteId == other.RouteId;
         }
 
         #endregion Methods

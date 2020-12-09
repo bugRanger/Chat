@@ -4,15 +4,12 @@
 
     using Newtonsoft.Json;
 
-    public class CallRequest : IMessage, IEquatable<CallRequest>
+    public class CallInviteRequest : IMessage, IEquatable<CallInviteRequest>
     {
         #region Properties
 
-        [JsonProperty(nameof(Source))]
-        public string Source { get; set; }
-
-        [JsonProperty(nameof(Target))]
-        public string Target { get; set; }
+        [JsonProperty(nameof(SessionId))]
+        public int SessionId { get; set; }
 
         [JsonProperty(nameof(RoutePort))]
         public int RoutePort { get; set; }
@@ -21,12 +18,11 @@
 
         #region Methods
 
-        public bool Equals(CallRequest other)
+        public bool Equals(CallInviteRequest other)
         {
             return
                 other != null &&
-                Source == other.Source &&
-                Target == other.Target &&
+                SessionId == other.SessionId &&
                 RoutePort == other.RoutePort;
         }
 

@@ -41,9 +41,10 @@
             Register("message", typeof(MessageBroadcast));
             Register("userOffline", typeof(UserOfflineBroadcast));
             Register("call-request", typeof(CallRequest));
-            Register("call-broadcast", typeof(CallBroadcast));
             Register("call-response", typeof(CallResponse));
-            Register("call-reject", typeof(CallRejectRequest));
+            Register("call-broadcast", typeof(CallBroadcast));
+            Register("call-invite", typeof(CallInviteRequest));
+            Register("call-cancel", typeof(CallCancelRequest));
         }
 
         #endregion Constructors
@@ -57,12 +58,17 @@
             if (!_typeToMessage.TryGetValue(payload.GetType(), out string key))
                 return false;
 
-            var message = JsonConvert.SerializeObject(new MessageContainer
-            {
-                Id = index,
-                Type = key,
-                Payload = payload,
-            });
+            var message = JsonConvert.SerializeObject(
+                new MessageContainer
+                {
+                    Id = index,
+                    Type = key,
+                    Payload = payload,
+                }, 
+                new JsonSerializerSettings 
+                { 
+                    NullValueHandling = NullValueHandling.Ignore 
+                });
 
             buffer = Pack(message);
 
@@ -87,7 +93,11 @@
             if (!_messageToType.TryGetValue(request.Type, out Type type))
                 return false;
 
-            request.Payload = JsonConvert.DeserializeObject(request.Payload.ToString(), type);
+            request.Payload = JsonConvert.DeserializeObject(request.Payload.ToString(), type,
+                new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                });
 
             offset += HEADER_SIZE + length;
             return true;

@@ -31,17 +31,20 @@ namespace Chat.Tests
                 new MessageBroadcast { Source = "User1", Target = "User2", Message = "Hi!" }),
 
             new TestCaseData(
-                "call-request", "\"Source\":\"User1\",\"Target\":\"User2\",\"MediaPort\":888", 
-                new CallRequest { Source = "User1", Target = "User2", MediaPort = 888 }),
+                "call-request", "\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":888", 
+                new CallRequest { Source = "User1", Target = "User2", RoutePort = 888 }),
             new TestCaseData(
-                "call-broadcast", "\"CallId\":1,\"Source\":\"User1\",\"Target\":\"User2\",\"State\":\"Calling\"", 
-                new CallBroadcast { CallId = 1, Source = "User1", Target = "User2", State = CallState.Calling }),
+                "call-broadcast", "\"SessionId\":1,\"Participants\":[\"User1\"],\"State\":\"Calling\"", 
+                new CallBroadcast { SessionId = 1, Participants = new []{ "User1" }, State = CallState.Calling }),
             new TestCaseData(
-                "call-response", "\"CallId\":1,\"MediaId\":123", 
-                new CallResponse { CallId = 1, MediaId = 123 }),
+                "call-response", "\"SessionId\":1,\"RouteId\":123", 
+                new CallResponse { SessionId = 1, RouteId = 123 }),
             new TestCaseData(
-                "call-reject", "\"CallId\":1",
-                new CallRejectRequest { CallId = 1 }),
+                "call-invite", "\"SessionId\":1,\"RoutePort\":888",
+                new CallInviteRequest{ SessionId = 1, RoutePort = 888 }),
+            new TestCaseData(
+                "call-cancel", "\"SessionId\":1",
+                new CallCancelRequest { SessionId = 1 }),
         };
 
         private IMessage _message;

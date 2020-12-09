@@ -5,6 +5,7 @@
 
     using Chat.Server.API;
     using Chat.Server.Auth;
+    using Chat.Server.Call;
     using Chat.Server.Network;
     using Chat.Server.Watcher;
 
@@ -14,25 +15,27 @@
         {
             Console.WriteLine("Press key:\r\n S - stop\r\n Q - exit");
 
-            var provider = new TcpProvider(NetworkSocket.Create);
+            var tcpProvider = new TcpProvider(NetworkSocket.Create);
+            var udpProvider = new UdpProvider(NetworkSocket.Create);
 
-            var watcher = new ActivityWatcher(provider)
+            var watcher = new ActivityWatcher(tcpProvider)
             {
                 Interval = 15000,
             };
 
             var authorization = new AuthorizationController();
 
-            var core = new CoreApi(provider);
+            var core = new CoreApi(tcpProvider);
 
             new AuthApi(core, authorization);
             new TextApi(core, authorization);
-            new CallApi(core, authorization, null);
+            new CallApi(core, authorization, new CallController(udpProvider));
 
             watcher.Start();
 
             // TODO Add network interfaces.
-            _ = provider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
+            _ = tcpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
+            _ = udpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
 
             while (true)
             {
@@ -43,7 +46,8 @@
                         return;
 
                     case ConsoleKey.S:
-                        provider.Stop();
+                        tcpProvider.Stop();
+                        udpProvider.Stop();
                         break;
 
                     default:

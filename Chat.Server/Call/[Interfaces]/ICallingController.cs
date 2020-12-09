@@ -12,13 +12,11 @@
 
         #region Methods
 
-        bool TryGet(int callId, out ICallSession session);
+        bool TryGet(int sessionId, out ICallSession session);
 
         bool TryGetOrAdd(string source, string target, out ICallSession session);
 
-        void Close(int sessionId);
-
-        void Disconnect(string target);
+        void Disconnect(IUser user);
 
         #endregion Methods
     }

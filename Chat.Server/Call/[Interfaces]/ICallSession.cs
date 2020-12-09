@@ -1,6 +1,7 @@
 ﻿namespace Chat.Server.Call
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
 
     using Chat.Api.Messages.Call;
@@ -11,21 +12,21 @@
 
         int Id { get; }
 
-        string Source { get; }
-
-        string Target { get; }
-
         CallState State { get; }
 
         #endregion Properties
 
         #region Methods
 
-        int AddRoute(IPEndPoint iPEndPoint);
+        int AppendOrUpdate(IUser user, int port = 0);
 
-        void Open();
+        void Remove(IUser user);
 
-        void Close();
+        bool Contains(IUser user);
+
+        IEnumerable<IUser> GetParticipants();
+
+        void RaiseNotify();
 
         #endregion Methods
     }

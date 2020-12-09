@@ -13,7 +13,7 @@
 
         #region Events
 
-        event EventHandler<bool> Closing;
+        event Action<bool> Closing;
 
         #endregion Events
 

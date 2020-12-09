@@ -1,7 +1,7 @@
 ﻿namespace Chat.Api.Messages.Call
 {
     using System;
-
+    using System.Linq;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
@@ -9,14 +9,11 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(CallId))]
-        public int CallId { get; set; }
+        [JsonProperty(nameof(SessionId))]
+        public int SessionId { get; set; }
 
-        [JsonProperty(nameof(Source))]
-        public string Source { get; set; }
-
-        [JsonProperty(nameof(Target))]
-        public string Target { get; set; }
+        [JsonProperty(nameof(Participants))]
+        public string[] Participants { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         public CallState State { get; set; }
@@ -29,10 +26,9 @@
         {
             return
                 other != null &&
-                Source == other.Source &&
-                Target == other.Target &&
                 State == other.State &&
-                CallId == other.CallId;
+                SessionId == other.SessionId &&
+                Participants.SequenceEqual(other.Participants);
         }
 
         #endregion Methods

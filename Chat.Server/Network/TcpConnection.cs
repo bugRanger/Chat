@@ -34,7 +34,7 @@
 
         #region Events
 
-        public event EventHandler<bool> Closing;
+        public event Action<bool> Closing;
 
         #endregion Events
 
@@ -128,7 +128,7 @@
 
         public void Disconnect(bool inactive)
         {
-            Closing?.Invoke(this, inactive);
+            Closing?.Invoke(inactive);
 
             _socket.Close();
 

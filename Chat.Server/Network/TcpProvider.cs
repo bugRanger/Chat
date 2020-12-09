@@ -104,7 +104,7 @@
                         if (!_connections.TryAdd(socket.RemoteEndPoint, client = new TcpConnection(socket)))
                             continue;
 
-                        client.Closing += (s, inactive) =>
+                        client.Closing += (inactive) =>
                         {
                             ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
                             _connections.TryRemove(client.RemoteEndPoint, out _);

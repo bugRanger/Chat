@@ -4,22 +4,22 @@
 
     using Newtonsoft.Json;
 
-    public class CallRejectRequest : IMessage, IEquatable<CallRejectRequest>
+    public class CallCancelRequest : IMessage, IEquatable<CallCancelRequest>
     {
         #region Properties
 
-        [JsonProperty(nameof(CallId))]
-        public int CallId { get; set; }
+        [JsonProperty(nameof(SessionId))]
+        public int SessionId { get; set; }
 
         #endregion Properties
 
         #region Methods
 
-        public bool Equals(CallRejectRequest other)
+        public bool Equals(CallCancelRequest other)
         {
             return
                 other != null &&
-                CallId == other.CallId;
+                SessionId == other.SessionId;
         }
 
         #endregion Methods
