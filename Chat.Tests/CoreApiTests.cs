@@ -15,7 +15,7 @@
     using Chat.Api;
 
     [TestFixture]
-    public partial class CoreApiTests
+    public class CoreApiTests
     {
         #region Fields
 
@@ -25,7 +25,7 @@
         private List<IPEndPoint> _remotes;
 
         private CoreApi _core;
-        private AuthorizationController _auth;
+        private AuthorizationController _authorization;
 
         private Mock<ITcpСontroller> _networkMoq;
 
@@ -41,7 +41,7 @@
 
             _remotes = new List<IPEndPoint>();
 
-            _auth = new AuthorizationController();
+            _authorization = new AuthorizationController();
 
             _networkMoq = new Mock<ITcpСontroller>();
             _networkMoq
@@ -58,10 +58,16 @@
                     _networkMoq.Raise(s => s.ConnectionClosing += null, remote, inactive);
                 });
 
-            _core = new CoreApi(_networkMoq.Object, _auth);
+            _core = new CoreApi(_networkMoq.Object);
+
+            new AuthApi(_core, _authorization);
+            new TextApi(_core, _authorization);
+            new CallApi(_core, null);
         }
 
         #endregion Constructors
+
+        #region Methods
 
         [Test]
         public void PrivateMessageNotLogginTest()
@@ -127,8 +133,8 @@
             _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
 
             // Assert
-            Assert.AreEqual(0, _auth.GetUsers().Count());
-            Assert.AreEqual(false, _auth.TryGet("User1", out _));
+            Assert.AreEqual(0, _authorization.GetUsers().Count());
+            Assert.AreEqual(false, _authorization.TryGet("User1", out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
 
@@ -137,17 +143,19 @@
         {
             // Arrage
             AuthorizationTest();
+            AuthorizationTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"unauth\",\"Payload\":{}}");
             _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
             _expectedEvent.Add(new TestEvent(_remotes[0], false));
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":0,\"Type\":\"userOffline\",\"Payload\":{\"User\":\"User1\"}}")));
 
             // Act
             _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
 
             // Assert
-            Assert.AreEqual(0, _auth.GetUsers().Count());
-            Assert.AreEqual(false, _auth.TryGet("User1", out _));
+            Assert.AreEqual(1, _authorization.GetUsers().Count());
+            Assert.AreEqual(false, _authorization.TryGet("User1", out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
 
@@ -165,8 +173,8 @@
             _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
 
             // Assert
-            Assert.AreEqual(1, _auth.GetUsers().Count());
-            Assert.AreEqual(true, _auth.TryGet("Dummy", out _));
+            Assert.AreEqual(1, _authorization.GetUsers().Count());
+            Assert.AreEqual(true, _authorization.TryGet("Dummy", out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
 
@@ -184,8 +192,8 @@
             _networkMoq.Raise(s => s.PreparePacket += null, _remotes[1], request, 0, request.Length);
 
             // Assert
-            Assert.AreEqual(1, _auth.GetUsers().Count());
-            Assert.AreEqual(true, _auth.TryGet("User1", out _));
+            Assert.AreEqual(1, _authorization.GetUsers().Count());
+            Assert.AreEqual(true, _authorization.TryGet("User1", out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
 
@@ -202,8 +210,8 @@
             _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
 
             // Assert
-            Assert.AreEqual(1, _auth.GetUsers().Count());
-            Assert.AreEqual(true, _auth.TryGet("User1", out _));
+            Assert.AreEqual(1, _authorization.GetUsers().Count());
+            Assert.AreEqual(true, _authorization.TryGet("User1", out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
 
@@ -224,10 +232,10 @@
             }
 
             // Act
-            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[_remotes.Count - 1], request, 0, request.Length);
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[^1], request, 0, request.Length);
 
             // Assert
-            Assert.AreEqual(true, _auth.TryGet($"User{_remotes.Count}", out _));
+            Assert.AreEqual(true, _authorization.TryGet($"User{_remotes.Count}", out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
 
@@ -241,8 +249,27 @@
             _networkMoq.Raise(s => s.ConnectionAccepted += null, _remotes[^1]);
 
             // Assert
-            Assert.IsFalse(_auth.TryGet(_remotes[^1], out _));
+            Assert.IsFalse(_authorization.TryGet(_remotes[^1], out _));
             CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
         }
+
+        [Test]
+        public void DisconnectionTest()
+        {
+            // Arrage
+            AuthorizationTest();
+            AuthorizationTest();
+
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"userOffline\",\"Payload\":{\"User\":\"User2\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.ConnectionClosing += null, _remotes[^1], false);
+
+            // Assert
+            Assert.IsFalse(_authorization.TryGet(_remotes[^1], out _));
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        #endregion Methods
     }
 }

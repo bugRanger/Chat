@@ -22,9 +22,11 @@
 
         public AuthApi(ICoreApi core, IAuthorizationController authorization)
         {
-            _core = core;
             _authorization = authorization;
+            _core = core;
+            _core.ConnectionClosing += OnConnectionClosing;
 
+            _core.Registration(this);
             _core.Registration<AuthorizationRequest>(HandleAuthorization);
             _core.Registration<UnauthorizationRequest>(HandleUnauthorization);
         }
@@ -77,7 +79,7 @@
             var status = StatusCode.Success;
             var reason = string.Empty;
 
-            if (!_authorization.TryGet(remote, out _))
+            if (!_authorization.TryRemove(remote, out IUser user))
             {
                 status = StatusCode.NotAuthorized;
                 reason = "User is not logged in";
@@ -96,7 +98,22 @@
                 .Select(s => s.Remote)
                 .ToArray();
 
-            _core.Send(request, remotes);
+            _core.Send(new UserOfflineBroadcast { User = user.Name }, remotes);
+        }
+
+        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
+        {
+            if (!_authorization.TryRemove(remote, out IUser user))
+            {
+                return;
+            }
+
+            var remotes = _authorization
+                .GetUsers()
+                .Select(s => s.Remote)
+                .ToArray();
+
+            _core.Send(new UserOfflineBroadcast { User = user.Name }, remotes);
         }
 
         // TODO send User detail.

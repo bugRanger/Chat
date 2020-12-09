@@ -4,53 +4,50 @@
     using System.Collections;
     using System.Linq;
 
-    public partial class CoreApiTests
+    public class TestEvent : IEquatable<TestEvent>
     {
-        public class TestEvent : IEquatable<TestEvent>
+        #region Properties
+
+        public object[] Params { get; }
+
+        #endregion Properties
+
+        #region Constructors
+
+        public TestEvent(params object[] param) 
         {
-            #region Properties
+            Params = param;
+        }
 
-            public object[] Params { get; }
+        #endregion Constructors
 
-            #endregion Properties
+        #region Methods
 
-            #region Constructors
-
-            public TestEvent(params object[] param) 
+        public bool Equals(TestEvent other)
+        {
+            if (other?.Params?.Length == 0 || Params?.Length != other.Params.Length)
             {
-                Params = param;
+                return false;
             }
 
-            #endregion Constructors
-
-            #region Methods
-
-            public bool Equals(TestEvent other)
+            for (int i = 0; i < Params.Length; i++)
             {
-                if (other?.Params?.Length == 0 || Params?.Length != other.Params.Length)
+                if (Params[i] is IEnumerable paramArray && other.Params[i] is IEnumerable otherArray)
                 {
-                    return false;
-                }
-
-                for (int i = 0; i < Params.Length; i++)
-                {
-                    if (Params[i] is IEnumerable paramArray && other.Params[i] is IEnumerable otherArray)
-                    {
-                        if (!paramArray.Cast<object>().SequenceEqual(otherArray.Cast<object>()))
-                        {
-                            return false;
-                        }
-                    }
-                    else if (!Params[i].Equals(other.Params[i]))
+                    if (!paramArray.Cast<object>().SequenceEqual(otherArray.Cast<object>()))
                     {
                         return false;
                     }
                 }
-
-                return true;
+                else if (!Params[i].Equals(other.Params[i]))
+                {
+                    return false;
+                }
             }
 
-            #endregion Methods
+            return true;
         }
+
+        #endregion Methods
     }
 }

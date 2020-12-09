@@ -2,14 +2,12 @@
 {
     using System;
     using System.Net;
-    using System.Linq;
     using System.Collections.Generic;
 
     using NLog;
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using Chat.Api.Messages.Auth;
 
 
     delegate void HandleMessage(IPEndPoint remote, int index, IMessage message);
@@ -22,26 +20,25 @@
 
         private readonly List<IApiModule> _modules;
         private readonly ITcpСontroller _network;
-        private readonly IAuthorizationController _authorization;
         private readonly Dictionary<Type, HandleMessage> _messages;
 
         #endregion Fields
 
+        #region Events
+
+        public event Action<IPEndPoint, bool> ConnectionClosing;
+
+        #endregion Events
+
         #region Constructors
 
-        public CoreApi(ITcpСontroller network, IAuthorizationController authorization)
+        public CoreApi(ITcpСontroller network)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
             _messages = new Dictionary<Type, HandleMessage>();
-            _modules = new List<IApiModule>
-            {
-                new AuthApi(this, authorization),
-                new TextApi(this, authorization),
-                new CallApi(this, authorization),
-            };
+            _modules = new List<IApiModule>();
 
-            _authorization = authorization;
             _network = network;
             _network.PreparePacket += OnPreparePacket;
             _network.ConnectionClosing += OnConnectionClosing;
@@ -51,6 +48,10 @@
 
         #region Methods
 
+        public void Registration(IApiModule module)
+        {
+            _modules.Add(module);
+        }
 
         public void Send(IMessage message, IPEndPoint remote, int index)
         {
@@ -112,18 +113,7 @@
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)
         {
-            if (!_authorization.TryRemove(remote, out IUser user))
-            {
-                _logger.Error("User not found for disconnect.");
-                return;
-            }
-
-            var remotes = _authorization
-                .GetUsers()
-                .Select(s => s.Remote)
-                .ToArray();
-
-            Send(new UserOfflineBroadcast { User = user.Name }, remotes);
+            ConnectionClosing?.Invoke(remote, inactive);
         }
 
         #endregion Methods

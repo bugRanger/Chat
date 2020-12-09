@@ -21,7 +21,13 @@
                 Interval = 15000,
             };
 
-            var core = new CoreApi(provider, new AuthorizationController());
+            var authorization = new AuthorizationController();
+
+            var core = new CoreApi(provider);
+
+            new AuthApi(core, authorization);
+            new TextApi(core, authorization);
+            new CallApi(core, null);
 
             watcher.Start();
 

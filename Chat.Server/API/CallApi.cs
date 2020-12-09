@@ -40,20 +40,18 @@
         #region Fields
 
         private readonly ICoreApi _core;
-        private readonly IUserContainer _users;
         private readonly ICallingController _calling;
 
         #endregion Fields
 
         #region Constructors
 
-        public CallApi(ICoreApi core, IUserContainer users)
+        public CallApi(ICoreApi core, ICallingController calling)
         {
+            _calling = calling;
             _core = core;
-            _users = users;
 
-            //_calling = calling;
-
+            _core.Registration(this);
             _core.Registration<CallRequest>(HandleCall);
             _core.Registration<CallRejectRequest>(HandleCallReject);
         }

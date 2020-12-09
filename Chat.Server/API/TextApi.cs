@@ -23,6 +23,7 @@
             _core = core;
             _users = users;
 
+            _core.Registration(this);
             _core.Registration<MessageBroadcast>(HandleMessage);
         }
 
