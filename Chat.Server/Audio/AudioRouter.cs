@@ -18,6 +18,8 @@
 
         #region Properties
 
+        public IPEndPoint this[int index] => _routes[index];
+
         public int Count => _routes.Count;
 
         #endregion Properties
@@ -75,6 +77,7 @@
                     continue;
                 }
 
+                // TODO Impl audio pack.
                 _network.Send(route.Value, bytes);
             }
         }

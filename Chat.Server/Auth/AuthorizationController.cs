@@ -2,7 +2,6 @@
 {
     using System;
     using System.Net;
-    using System.Linq;
     using System.Collections.Generic;
 
     public class AuthorizationController : IAuthorizationController
@@ -14,6 +13,12 @@
         private readonly Dictionary<string, IUser> _nameToUser;
 
         #endregion Fields
+
+        #region Events
+
+        public event Action<IUser> Append;
+
+        #endregion Events
 
         #region Constructors
 
@@ -32,9 +37,11 @@
         {
             lock (_locker)
             {
+                var isAppend = false;
                 if (!_remoteToUser.TryGetValue(remote, out IUser user))
                 {
                     user = new User();
+                    isAppend = true;
                 }
                 else
                 {
@@ -46,6 +53,11 @@
 
                 _nameToUser[user.Name] = user;
                 _remoteToUser[remote] = user;
+
+                if (isAppend)
+                {
+                    Append?.Invoke(user);
+                }
             }
         }
 

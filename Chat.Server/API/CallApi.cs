@@ -53,6 +53,7 @@
             _core = core;
             _core.ConnectionClosing += OnConnectionClosing;
             _users = users;
+            _users.Append += OnUserAppend;
             _callController = calling;
             _callController.SessionChanged += OnCallSessionChanged;
 
@@ -118,6 +119,7 @@
                 status = StatusCode.CallNotFound;
                 reason = "Call not found";
             }
+            // TODO Impl test.
             else if (!session.Contains(source))
             {
                 status = StatusCode.UserNotFound;
@@ -131,7 +133,7 @@
             }
 
             var routeId = session.AppendOrUpdate(source, request.RoutePort);
-            _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote);
+            _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
 
             session.RaiseNotify();
         }
@@ -167,6 +169,12 @@
 
             session.Remove(source);
             session.RaiseNotify();
+        }
+
+        private void OnUserAppend(IUser user)
+        {
+            // TODO Impl connection to call.
+            //_callController.Connection(user);
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)

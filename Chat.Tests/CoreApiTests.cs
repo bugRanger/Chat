@@ -12,8 +12,10 @@
     using Chat.Server;
     using Chat.Server.API;
     using Chat.Server.Auth;
-    using Chat.Api;
     using Chat.Server.Call;
+
+    using Chat.Api;
+    using Chat.Api.Messages.Call;
 
     [TestFixture]
     public class CoreApiTests
@@ -24,6 +26,7 @@
         private List<TestEvent> _expectedEvent;
 
         private List<IPEndPoint> _remotes;
+        private List<AudioRouter> _routers;
 
         private CoreApi _core;
         private ICallingController _calls;
@@ -42,9 +45,7 @@
             _expectedEvent = new List<TestEvent>();
 
             _remotes = new List<IPEndPoint>();
-
-            _calls = new Mock<ICallingController>().Object;
-            _authorization = new AuthorizationController();
+            _routers = new List<AudioRouter>();
 
             _networkMoq = new Mock<ITcpСontroller>();
             _networkMoq
@@ -62,6 +63,12 @@
                 });
 
             _core = new CoreApi(_networkMoq.Object);
+            _calls = new CallController((container) =>
+            {
+                _routers.Add(new AudioRouter(container, _networkMoq.Object));
+                return _routers[^1];
+            });
+            _authorization = new AuthorizationController();
 
             new AuthApi(_core, _authorization);
             new TextApi(_core, _authorization);
@@ -71,6 +78,188 @@
         #endregion Constructors
 
         #region Methods
+
+        [Test]
+        public void CancelCallingTest()
+        {
+            // Arrage
+            InviteCallingTest();
+
+            _authorization.TryGet("User1", out var user1);
+
+            var expectedId = -1951180698;
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-cancel\",\"Payload\":{\"SessionId\":-1951180698}}");
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\"],\"State\":\"Idle\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[1], request, 0, request.Length);
+
+            // Assert
+            Assert.AreEqual(false, _calls.TryGet(expectedId, out ICallSession session));
+            Assert.AreEqual(1, _routers[^1].Count);
+            Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _routers[^1][1]);
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void RejectCallingTest()
+        {
+            // Arrage
+            InitCallingTest();
+
+            _authorization.TryGet("User1", out var user1);
+
+            var expectedId = -1951180698;
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-cancel\",\"Payload\":{\"SessionId\":-1951180698}}");
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\"],\"State\":\"Idle\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[1], request, 0, request.Length);
+
+            // Assert
+            Assert.AreEqual(false, _calls.TryGet(expectedId, out ICallSession session));
+            Assert.AreEqual(1, _routers[^1].Count);
+            Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _routers[^1][1]);
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void InviteCallingNotFoundTest()
+        {
+            // Arrage
+            AuthorizationTest();
+
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":8888}}");
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"CallNotFound\",\"Reason\":\"Call not found\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void InviteCallingNotLogginTest() 
+        {
+            // Arrage
+            ConnectionTest();
+
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":8888}}");
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void InviteCallingTest()
+        {
+            // Arrage
+            InitCallingTest();
+
+            _authorization.TryGet("User1", out var user1);
+            _authorization.TryGet("User2", out var user2);
+
+            var expectedId = -1951180698;
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":8888}}");
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-response\",\"Payload\":{\"SessionId\":-1951180698,\"RouteId\":2}}")));
+
+            foreach (var remote in _remotes)
+            {
+                _expectedEvent.Add(new TestEvent(remote, PacketFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\",\"User2\"],\"State\":\"Active\"}}")));
+            }
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[1], request, 0, request.Length);
+
+            // Assert
+            Assert.AreEqual(true, _calls.TryGet(expectedId, out ICallSession session));
+            Assert.AreEqual(true, session.Contains(user1));
+            Assert.AreEqual(true, session.Contains(user2));
+            Assert.AreEqual(2, session.GetParticipants().Count());
+            Assert.AreEqual(2, _routers[^1].Count);
+            Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _routers[^1][1]);
+            Assert.AreEqual(new IPEndPoint(user2.Remote.Address, 8888), _routers[^1][2]);
+            Assert.AreEqual(CallState.Active, session.State);
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void InitCallingNotLogginTest()
+        {
+            // Arrage
+            ConnectionTest();
+
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":8888}}");
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void DuplicateInitCallingTest() 
+        {
+            // Arrage
+            InitCallingTest();
+
+            _authorization.TryGet("User1", out var user1);
+            var expectedId = -1951180698;
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":7777}}");
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"CallDuplicate\",\"Reason\":\"Call exists\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
+
+            // Assert
+            Assert.AreEqual(true, _calls.TryGet(expectedId, out ICallSession session));
+            Assert.AreEqual(2, session.GetParticipants().Count());
+            Assert.AreEqual(1, _routers[^1].Count);
+            Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _routers[^1][1]);
+            Assert.AreEqual(CallState.Calling, session.State);
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
+        public void InitCallingTest() 
+        {
+            // Arrage
+            AuthorizationTest();
+            AuthorizationTest();
+
+            _authorization.TryGet("User1", out var user1);
+            _authorization.TryGet("User2", out var user2);
+
+            var expectedId = -1951180698;
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":8888}}");
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-response\",\"Payload\":{\"SessionId\":-1951180698,\"RouteId\":1}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\",\"User2\"],\"State\":\"Calling\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\",\"User2\"],\"State\":\"Calling\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
+
+            // Assert
+            Assert.AreEqual(true, _calls.TryGet(expectedId, out ICallSession session));
+            Assert.AreEqual(true, session.Contains(user1));
+            Assert.AreEqual(true, session.Contains(user2));
+            Assert.AreEqual(2, session.GetParticipants().Count());
+            Assert.AreEqual(1, _routers[^1].Count);
+            Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _routers[^1][1]);
+            Assert.AreEqual(CallState.Calling, session.State);
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
 
         [Test]
         public void PrivateMessageNotLogginTest()

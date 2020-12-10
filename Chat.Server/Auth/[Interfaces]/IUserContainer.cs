@@ -6,6 +6,12 @@
 
     public interface IUserContainer
     {
+        #region Events
+
+        event Action<IUser> Append;
+
+        #endregion Events
+
         #region Methods
 
         bool TryGet(string userName, out IUser user);

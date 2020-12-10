@@ -103,7 +103,7 @@
         {
             switch (State)
             {
-                case CallState.Created when _router.Count == 1:
+                case CallState.Created:
                     State = CallState.Calling;
                     break;
 
@@ -111,7 +111,8 @@
                     State = CallState.Active;
                     break;
 
-                case CallState.Active when _router.Count < 2:
+                case CallState.Calling when _participants.Count < 2:
+                case CallState.Active when _participants.Count < 2:
                     State = CallState.Idle;
                     break;
 
