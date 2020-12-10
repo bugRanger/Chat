@@ -23,13 +23,14 @@
                 Interval = 15000,
             };
 
+            var calls = new CallController((container) => new AudioRouter(container, udpProvider));
             var authorization = new AuthorizationController();
 
             var core = new CoreApi(tcpProvider);
 
             new AuthApi(core, authorization);
             new TextApi(core, authorization);
-            new CallApi(core, authorization, new CallController(udpProvider));
+            new CallApi(core, authorization, calls);
 
             watcher.Start();
 

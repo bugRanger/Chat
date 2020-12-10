@@ -26,7 +26,7 @@
 
         #region Fields
 
-        public event Action Notify;
+        public event Action<ICallSession> Notify;
 
         #endregion Fields
 
@@ -96,7 +96,7 @@
 
         public void RaiseNotify()
         {
-            Notify?.Invoke();
+            Notify?.Invoke(this);
         }
 
         private void Refresh()
@@ -111,7 +111,6 @@
                     State = CallState.Active;
                     break;
 
-                case CallState.Calling when _router.Count < 2:
                 case CallState.Active when _router.Count < 2:
                     State = CallState.Idle;
                     break;

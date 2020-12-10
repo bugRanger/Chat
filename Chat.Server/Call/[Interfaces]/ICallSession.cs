@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net;
 
     using Chat.Api.Messages.Call;
 
@@ -15,6 +14,12 @@
         CallState State { get; }
 
         #endregion Properties
+
+        #region Fields
+
+        event Action<ICallSession> Notify;
+
+        #endregion Fields
 
         #region Methods
 

@@ -78,7 +78,7 @@
                 status = StatusCode.NotAuthorized;
                 reason = "User is not logged in";
             }
-            else if (_callController.TryGetOrAdd(source.Name, request.Target, out session))
+            else if (!_callController.TryGetOrAdd(source.Name, request.Target, out session))
             {
                 status = StatusCode.CallDuplicate;
                 reason = "Call exists";
@@ -96,7 +96,7 @@
                 session.AppendOrUpdate(target);
             }
 
-            _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote);
+            _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
 
             session.RaiseNotify();
         }
