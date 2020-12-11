@@ -340,7 +340,7 @@
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"unauth\",\"Payload\":{}}");
             _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
             _expectedEvent.Add(new TestEvent(_remotes[0], false));
-            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":0,\"Type\":\"userOffline\",\"Payload\":{\"User\":\"User1\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[1], PacketFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User1\"}}")));
 
             // Act
             _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
@@ -452,7 +452,7 @@
             AuthorizationTest();
             AuthorizationTest();
 
-            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"userOffline\",\"Payload\":{\"User\":\"User2\"}}")));
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User2\"}}")));
 
             // Act
             _networkMoq.Raise(s => s.ConnectionClosing += null, _remotes[^1], false);

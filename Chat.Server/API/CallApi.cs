@@ -173,7 +173,7 @@
 
         private void OnUserAppend(IUser user)
         {
-            // TODO Impl connection to call.
+            // TODO Сonnect the user to the call session when he is online.
             //_callController.Connection(user);
         }
 

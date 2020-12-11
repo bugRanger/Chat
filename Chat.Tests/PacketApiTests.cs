@@ -24,7 +24,7 @@ namespace Chat.Tests
             new TestCaseData("result", "\"Status\":\"Success\",\"Reason\":\"\"", new MessageResult { Status = StatusCode.Success, Reason = ""}),
 
             new TestCaseData("users", "\"Users\":[\"User1\",\"User2\"]", new UsersBroadcast { Users = new []{ "User1", "User2" } }),
-            new TestCaseData("userOffline", "\"User\":\"User1\"", new UserOfflineBroadcast { User = "User1" }),
+            new TestCaseData("user-offline", "\"User\":\"User1\"", new UserOfflineBroadcast { User = "User1" }),
 
             new TestCaseData(
                 "message", "\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"Hi!\"",

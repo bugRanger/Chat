@@ -39,7 +39,7 @@
             Register("users", typeof(UsersBroadcast));
             Register("result", typeof(MessageResult));
             Register("message", typeof(MessageBroadcast));
-            Register("userOffline", typeof(UserOfflineBroadcast));
+            Register("user-offline", typeof(UserOfflineBroadcast));
             Register("call-request", typeof(CallRequest));
             Register("call-response", typeof(CallResponse));
             Register("call-broadcast", typeof(CallBroadcast));
