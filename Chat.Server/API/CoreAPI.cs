@@ -103,12 +103,19 @@
 
         private void OnPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
         {
-            if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
+            try
             {
-                return;
-            }
+                if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
+                {
+                    return;
+                }
 
-            Handle(remote, request.Id, (IMessage)request.Payload);
+                Handle(remote, request.Id, (IMessage)request.Payload);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)
