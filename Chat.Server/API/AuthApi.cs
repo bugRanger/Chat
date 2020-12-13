@@ -7,7 +7,7 @@
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using Chat.Api.Messages.Auth;
+    using Chat.Api.Messages.login;
 
     public class AuthApi : IApiModule
     {
@@ -27,15 +27,15 @@
             _core.ConnectionClosing += OnConnectionClosing;
 
             _core.Registration(this);
-            _core.Registration<AuthorizationRequest>(HandleAuthorization);
-            _core.Registration<UnauthorizationRequest>(HandleUnauthorization);
+            _core.Registration<LoginRequest>(HandleLogin);
+            _core.Registration<LogoutRequest>(HandleLogout);
         }
 
         #endregion Constructors
 
         #region Methods
 
-        private void HandleAuthorization(IPEndPoint remote, int index, AuthorizationRequest request)
+        private void HandleLogin(IPEndPoint remote, int index, LoginRequest request)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;
@@ -55,13 +55,7 @@
                 users = _authorization.GetUsers().Where(s => s.Remote != remote);
                 remotes = users.Select(s => s.Remote);
 
-                _authorization.AddOrUpdate(remote, s =>
-                {
-                    s.Remote = remote;
-                    s.Name = request.User;
-
-                    user = s;
-                });
+                user = _authorization.AddOrUpdate(remote, request.User);
             }
 
             _core.Send(new MessageResult { Status = status, Reason = reason }, remote, index);
@@ -74,7 +68,7 @@
             _core.Send(new UsersBroadcast { Users = new[] { GetUserDetail(user) } }, remotes.ToArray());
         }
 
-        private void HandleUnauthorization(IPEndPoint remote, int index, UnauthorizationRequest request)
+        private void HandleLogout(IPEndPoint remote, int index, LogoutRequest request)
         {
             var status = StatusCode.Success;
             var reason = string.Empty;

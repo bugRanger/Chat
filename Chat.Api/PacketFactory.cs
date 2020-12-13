@@ -8,7 +8,7 @@
     using Newtonsoft.Json;
 
     using Chat.Api.Messages;
-    using Chat.Api.Messages.Auth;
+    using Chat.Api.Messages.login;
     using Chat.Api.Messages.Text;
     using Chat.Api.Messages.Call;
 
@@ -34,8 +34,8 @@
             _messageToType = new Dictionary<string, Type>();
             _typeToMessage = new Dictionary<Type, string>();
 
-            Register("auth", typeof(AuthorizationRequest));
-            Register("unauth", typeof(UnauthorizationRequest));
+            Register("login", typeof(LoginRequest));
+            Register("logout", typeof(LogoutRequest));
             Register("users", typeof(UsersBroadcast));
             Register("result", typeof(MessageResult));
             Register("message", typeof(MessageBroadcast));

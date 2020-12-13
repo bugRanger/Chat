@@ -1,4 +1,4 @@
-﻿namespace Chat.Server.Auth
+﻿namespace Chat.Server.login
 {
     using System;
     using System.Net;
@@ -9,39 +9,31 @@
         #region Fields
 
         private readonly object _locker;
-        private readonly Dictionary<IPEndPoint, IUser> _remoteToUser;
-        private readonly Dictionary<string, IUser> _nameToUser;
+        private readonly Dictionary<IPEndPoint, User> _remoteToUser;
+        private readonly Dictionary<string, User> _nameToUser;
 
         #endregion Fields
-
-        #region Events
-
-        public event Action<IUser> Append;
-
-        #endregion Events
 
         #region Constructors
 
         public AuthorizationController() 
         {
             _locker = new object();
-            _remoteToUser = new Dictionary<IPEndPoint, IUser>();
-            _nameToUser = new Dictionary<string, IUser>();
+            _remoteToUser = new Dictionary<IPEndPoint, User>();
+            _nameToUser = new Dictionary<string, User>();
         }
 
         #endregion Constructors
 
         #region Methods
 
-        public void AddOrUpdate(IPEndPoint remote, Action<User> update)
+        public IUser AddOrUpdate(IPEndPoint remote, string name)
         {
             lock (_locker)
             {
-                var isAppend = false;
-                if (!_remoteToUser.TryGetValue(remote, out IUser user))
+                if (!_remoteToUser.TryGetValue(remote, out User user))
                 {
                     user = new User();
-                    isAppend = true;
                 }
                 else
                 {
@@ -49,15 +41,13 @@
                     _nameToUser.Remove(user.Name);
                 }
 
-                update((User)user);
+                user.Remote = remote;
+                user.Name = name;
 
+                _remoteToUser[user.Remote] = user;
                 _nameToUser[user.Name] = user;
-                _remoteToUser[remote] = user;
 
-                if (isAppend)
-                {
-                    Append?.Invoke(user);
-                }
+                return user;
             }
         }
 
@@ -65,13 +55,17 @@
         {
             lock (_locker)
             {
-                if (!_remoteToUser.TryGetValue(remote, out user))
+                user = null;
+
+                if (!_remoteToUser.TryGetValue(remote, out User match))
                 {
                     return false;
                 }
 
+                user = match;
+
+                _remoteToUser.Remove(user.Remote);
                 _nameToUser.Remove(user.Name);
-                _remoteToUser.Remove(remote);
 
                 return true;
             }
@@ -79,12 +73,28 @@
 
         public bool TryGet(string userName, out IUser user)
         {
-            return _nameToUser.TryGetValue(userName, out user);
+            user = null;
+
+            if (!_nameToUser.TryGetValue(userName, out var match))
+            {
+                return false;
+            }
+
+            user = match;
+            return true;
         }
 
-        public bool TryGet(IPEndPoint endPoint, out IUser user)
+        public bool TryGet(IPEndPoint remote, out IUser user)
         {
-            return _remoteToUser.TryGetValue(endPoint, out user);
+            user = null;
+
+            if (!_remoteToUser.TryGetValue(remote, out var match))
+            {
+                return false;
+            }
+
+            user = match;
+            return true;
         }
 
         public IEnumerable<IUser> GetUsers()

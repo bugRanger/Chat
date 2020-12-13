@@ -53,7 +53,6 @@
             _core = core;
             _core.ConnectionClosing += OnConnectionClosing;
             _users = users;
-            _users.Append += OnUserAppend;
             _callController = calling;
             _callController.SessionChanged += OnCallSessionChanged;
 
@@ -169,12 +168,6 @@
 
             session.Remove(source);
             session.RaiseNotify();
-        }
-
-        private void OnUserAppend(IUser user)
-        {
-            // TODO Сonnect the user to the call session when he is online.
-            //_callController.Connection(user);
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)

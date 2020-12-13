@@ -8,7 +8,7 @@ namespace Chat.Tests
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using Chat.Api.Messages.Auth;
+    using Chat.Api.Messages.login;
     using Chat.Api.Messages.Text;
     using Chat.Api.Messages.Call;
 
@@ -18,8 +18,8 @@ namespace Chat.Tests
 
         private static TestCaseData[] Messages =
         {
-            new TestCaseData("auth", "\"User\":\"User1\"", new AuthorizationRequest { User = "User1" }),
-            new TestCaseData("unauth", "", new UnauthorizationRequest()),
+            new TestCaseData("login", "\"User\":\"User1\"", new LoginRequest { User = "User1" }),
+            new TestCaseData("logout", "", new LogoutRequest()),
 
             new TestCaseData("result", "\"Status\":\"Success\",\"Reason\":\"\"", new MessageResult { Status = StatusCode.Success, Reason = ""}),
 

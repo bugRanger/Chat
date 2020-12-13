@@ -3,13 +3,13 @@
     using System;
     using System.Net;
 
-    using Chat.Server.Auth;
+    using Chat.Server.login;
 
     public interface IAuthorizationController : IUserContainer
     {
         #region Methods
 
-        void AddOrUpdate(IPEndPoint remote, Action<User> update);
+        public IUser AddOrUpdate(IPEndPoint remote, string name);
 
         bool TryRemove(IPEndPoint remote, out IUser user);
 

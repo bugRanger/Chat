@@ -1,4 +1,4 @@
-﻿namespace Chat.Api.Messages.Auth
+﻿namespace Chat.Api.Messages.login
 {
     using System;
     using System.Linq;

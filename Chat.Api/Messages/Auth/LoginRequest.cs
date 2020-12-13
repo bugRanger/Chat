@@ -1,10 +1,10 @@
-﻿namespace Chat.Api.Messages.Auth
+﻿namespace Chat.Api.Messages.login
 {
     using System;
 
     using Newtonsoft.Json;
 
-    public class AuthorizationRequest : IMessage, IEquatable<AuthorizationRequest>
+    public class LoginRequest : IMessage, IEquatable<LoginRequest>
     {
         #region Properties
 
@@ -15,7 +15,7 @@
 
         #region Methods
 
-        public bool Equals(AuthorizationRequest other)
+        public bool Equals(LoginRequest other)
         {
             return User == other?.User;
         }
