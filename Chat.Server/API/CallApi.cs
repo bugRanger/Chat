@@ -71,12 +71,18 @@
             var status = StatusCode.Success;
             var reason = string.Empty;
 
+            IUser target = null;
             ICallSession session = null;
 
             if (!_users.TryGet(remote, out IUser source))
             {
                 status = StatusCode.NotAuthorized;
                 reason = "User is not logged in";
+            }
+            else if (!_users.TryGet(request.Target, out target))
+            {
+                status = StatusCode.UserNotFound;
+                reason = "Target not found";
             }
             else if (!_callController.TryGetOrAdd(source.Name, request.Target, out session))
             {
@@ -91,10 +97,7 @@
             }
 
             var routeId = session.AppendOrUpdate(source, request.RoutePort);
-            if (_users.TryGet(request.Target, out IUser target))
-            {
-                session.AppendOrUpdate(target);
-            }
+            session.AppendOrUpdate(target);
 
             _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
 

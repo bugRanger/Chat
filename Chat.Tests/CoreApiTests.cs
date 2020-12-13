@@ -231,6 +231,22 @@
         }
 
         [Test]
+        public void InitCallingNotExistsTargetTest()
+        {
+            // Arrage
+            AuthorizationTest();
+
+            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":8888}}");
+            _expectedEvent.Add(new TestEvent(_remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"UserNotFound\",\"Reason\":\"Target not found\"}}")));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, _remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
+
+        [Test]
         public void InitCallingTest() 
         {
             // Arrage
