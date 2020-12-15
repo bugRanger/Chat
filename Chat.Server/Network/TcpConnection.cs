@@ -65,9 +65,9 @@
 
         #region Methods
 
-        public void Send(byte[] bytes)
+        public void Send(ArraySegment<byte> bytes)
         {
-            _stream.Write(bytes, 0, bytes.Length);
+            _stream.Write(bytes.Array, bytes.Offset, bytes.Count);
         }
 
         public async Task ListenAsync(PreparePacket prepare, CancellationToken token)

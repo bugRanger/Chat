@@ -6,6 +6,7 @@
     using Chat.Server.API;
     using Chat.Server.login;
     using Chat.Server.Call;
+    using Chat.Server.Audio;
     using Chat.Server.Network;
     using Chat.Server.Watcher;
 
@@ -23,7 +24,8 @@
                 Interval = 15000,
             };
 
-            var calls = new CallController((container) => new AudioRouter(container, udpProvider));
+            // TODO Impl udp transport layer.
+            var calls = new CallController((container) => new RedirectionRouter(container, null));
             var authorization = new AuthorizationController();
 
             var core = new CoreApi(tcpProvider);

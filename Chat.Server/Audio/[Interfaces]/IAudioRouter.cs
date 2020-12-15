@@ -1,4 +1,4 @@
-﻿namespace Chat.Server.Call
+﻿namespace Chat.Server.Audio
 {
     using System;
     using System.Net;
@@ -6,6 +6,8 @@
     public interface IAudioRouter
     {
         #region Properties
+
+        IPEndPoint this[int index] { get; }
 
         int Count { get; }
 

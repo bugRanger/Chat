@@ -16,6 +16,8 @@
 
     using Chat.Api;
     using Chat.Api.Messages.Call;
+    using Chat.Server.Audio;
+    using Chat.Media;
 
     [TestFixture]
     public class CoreApiTests
@@ -26,12 +28,12 @@
         private List<TestEvent> _expectedEvent;
 
         private List<IPEndPoint> _remotes;
-        private List<AudioRouter> _routers;
+        private List<IAudioRouter> _routers;
 
         private CoreApi _core;
         private ICallingController _calls;
         private IAuthorizationController _authorization;
-
+        
         private Mock<ITcpСontroller> _networkMoq;
 
         #endregion Fields
@@ -45,14 +47,14 @@
             _expectedEvent = new List<TestEvent>();
 
             _remotes = new List<IPEndPoint>();
-            _routers = new List<AudioRouter>();
+            _routers = new List<IAudioRouter>();
 
             _networkMoq = new Mock<ITcpСontroller>();
             _networkMoq
-                .Setup(s => s.Send(It.IsAny<IPEndPoint>(), It.IsAny<byte[]>()))
-                .Callback<IPEndPoint, byte[]>((remote, data) => 
+                .Setup(s => s.Send(It.IsAny<IPEndPoint>(), It.IsAny<ArraySegment<byte>>()))
+                .Callback<IPEndPoint, ArraySegment<byte>>((remote, data) =>
                 {
-                    _actualEvent.Add(new TestEvent(remote, (byte[])data.Clone()));
+                    _actualEvent.Add(new TestEvent(remote, data.ToArray()));
                 });
             _networkMoq
                 .Setup(s => s.Disconnect(It.IsAny<IPEndPoint>(), It.IsAny<bool>()))
@@ -65,7 +67,7 @@
             _core = new CoreApi(_networkMoq.Object);
             _calls = new CallController((container) =>
             {
-                _routers.Add(new AudioRouter(container, _networkMoq.Object));
+                _routers.Add(new RedirectionRouter(container, new AudioProvider(_networkMoq.Object)));
                 return _routers[^1];
             });
             _authorization = new AuthorizationController();
@@ -78,6 +80,37 @@
         #endregion Constructors
 
         #region Methods
+
+        [Test]
+        public void AudioRouteTest() 
+        {
+            // Arrage
+            InviteCallingTest();
+
+            var packetRoute1 = new AudioPacket
+            {
+                RouteId = 1,
+                Payload = new byte[] { 1 },
+            }
+            .Pack();
+
+            var packetRoute2 = new AudioPacket
+            {
+                RouteId = 2,
+                Payload = new byte[] { 2 },
+            }
+            .Pack();
+
+            _expectedEvent.Add(new TestEvent(_routers[^1][2], new AudioPacket { RouteId = 2, Payload = new byte[] { 1 }, }.Pack()));
+            _expectedEvent.Add(new TestEvent(_routers[^1][1], new AudioPacket { RouteId = 1, Payload = new byte[] { 2 }, }.Pack()));
+
+            // Act
+            _networkMoq.Raise(s => s.PreparePacket += null, null, packetRoute1.Array, packetRoute1.Offset, packetRoute1.Count);
+            _networkMoq.Raise(s => s.PreparePacket += null, null, packetRoute2.Array, packetRoute2.Offset, packetRoute2.Count);
+
+            // Assert
+            CollectionAssert.AreEqual(_expectedEvent, _actualEvent);
+        }
 
         [Test]
         public void CancelCallingTest()

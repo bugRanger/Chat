@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Chat.Api\Chat.Api.csproj" />
+    <ProjectReference Include="..\Chat.Media\Chat.Media.csproj" />
   </ItemGroup>
 
 </Project>

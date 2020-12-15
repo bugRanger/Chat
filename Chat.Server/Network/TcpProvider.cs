@@ -133,7 +133,7 @@
             FreeSocket();
         }
 
-        public void Send(IPEndPoint remote, byte[] bytes)
+        public void Send(IPEndPoint remote, ArraySegment<byte> bytes)
         {
             if (!_connections.TryGetValue(remote, out ITcpConnection connection))
             {

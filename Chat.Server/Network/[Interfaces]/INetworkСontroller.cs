@@ -16,7 +16,7 @@
 
         #region Methods
 
-        void Send(IPEndPoint target, byte[] bytes);
+        void Send(IPEndPoint target, ArraySegment<byte> bytes);
 
         #endregion Methods
     }

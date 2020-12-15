@@ -19,7 +19,7 @@
 
         #region Methods
 
-        void Send(byte[] bytes);
+        void Send(ArraySegment<byte> bytes);
 
         void Disconnect(bool inactive);
 

@@ -1,17 +1,18 @@
-﻿namespace Chat.Server.Call
+﻿namespace Chat.Server.Audio
 {
     using System;
     using System.Net;
     using System.Linq;
     using System.Collections.Generic;
+    using Chat.Server.Call;
 
-    public class AudioRouter : IAudioRouter
+    public class RedirectionRouter : IAudioRouter
     {
         #region Fields
 
         private readonly object _locker;
         private readonly KeyContainer _container;
-        private readonly INetworkСontroller _network;
+        private readonly IAudioProvider _provider;
         private readonly Dictionary<int, IPEndPoint> _routes;
 
         #endregion Fields
@@ -26,13 +27,14 @@
 
         #region Constructors
 
-        public AudioRouter(KeyContainer container, INetworkСontroller network) 
+        public RedirectionRouter(KeyContainer container, IAudioProvider provider) 
         {
             _locker = new object();
             _routes = new Dictionary<int, IPEndPoint>();
 
             _container = container;
-            _network = network;
+            _provider = provider;
+            _provider.Received += OnProviderReceived;
         }
 
         #endregion Constructors
@@ -63,7 +65,7 @@
             }
         }
 
-        public void Handle(int routeId, byte[] bytes) 
+        private void OnProviderReceived(int routeId, ArraySegment<byte> bytes) 
         {
             if (!_routes.ContainsKey(routeId))
             {
@@ -77,8 +79,7 @@
                     continue;
                 }
 
-                // TODO Impl audio pack.
-                _network.Send(route.Value, bytes);
+                _provider.Send(route.Value, route.Key, bytes);
             }
         }
 

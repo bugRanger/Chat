@@ -141,9 +141,9 @@
             FreeSocket();
         }
 
-        public void Send(IPEndPoint remote, byte[] bytes)
+        public void Send(IPEndPoint remote, ArraySegment<byte> bytes)
         {
-            _listener.SendTo(bytes, 0, bytes.Length, remote);
+            _listener.SendTo(bytes.Array, bytes.Offset, bytes.Count, remote);
         }
 
         private void FreeToken()
