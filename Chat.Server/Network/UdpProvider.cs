@@ -87,7 +87,7 @@
                 while (!token.IsCancellationRequested)
                 {
                     int received = 0;
-                    EndPoint endPoint = null;
+                    EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
 
                     try
                     {
