@@ -6,7 +6,7 @@
     using System.Collections.Generic;
     using Chat.Server.Call;
 
-    public class RedirectionRouter : IAudioRouter
+    public class BridgeRouter : IAudioRouter
     {
         #region Fields
 
@@ -27,7 +27,7 @@
 
         #region Constructors
 
-        public RedirectionRouter(KeyContainer container, IAudioProvider provider) 
+        public BridgeRouter(KeyContainer container, IAudioProvider provider) 
         {
             _locker = new object();
             _routes = new Dictionary<int, IPEndPoint>();

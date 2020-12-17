@@ -67,7 +67,7 @@
             _core = new CoreApi(_networkMoq.Object);
             _calls = new CallController((container) =>
             {
-                _routers.Add(new RedirectionRouter(container, new AudioProvider(_networkMoq.Object)));
+                _routers.Add(new BridgeRouter(container, new AudioProvider(_networkMoq.Object)));
                 return _routers[^1];
             });
             _authorization = new AuthorizationController();
@@ -82,7 +82,7 @@
         #region Methods
 
         [Test]
-        public void AudioRouteTest() 
+        public void BridgeRouteTest() 
         {
             // Arrage
             InviteCallingTest();
