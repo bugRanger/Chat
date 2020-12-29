@@ -5,6 +5,8 @@
 
     using Chat.Api.Messages.Call;
 
+    using Chat.Server.Auth;
+
     public interface ICallSession
     {
         #region Properties

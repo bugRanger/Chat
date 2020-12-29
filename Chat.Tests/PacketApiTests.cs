@@ -8,7 +8,7 @@ namespace Chat.Tests
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using Chat.Api.Messages.login;
+    using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Text;
     using Chat.Api.Messages.Call;
 

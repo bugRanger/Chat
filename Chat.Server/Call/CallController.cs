@@ -7,7 +7,9 @@
     using System.Security.Cryptography;
 
     using Chat.Api.Messages.Call;
+
     using Chat.Server.Audio;
+    using Chat.Server.Auth;
 
     public class CallController : ICallingController
     {

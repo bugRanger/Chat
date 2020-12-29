@@ -7,7 +7,9 @@
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using Chat.Api.Messages.login;
+    using Chat.Api.Messages.Auth;
+
+    using Chat.Server.Auth;
 
     public class AuthApi : IApiModule
     {

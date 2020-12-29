@@ -1,6 +1,7 @@
 ﻿namespace Chat.Server.Call
 {
     using System;
+    using Chat.Server.Auth;
 
     public interface ICallingController
     {

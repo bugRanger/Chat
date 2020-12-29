@@ -9,6 +9,7 @@
     using Chat.Api.Messages.Call;
 
     using Chat.Server.Call;
+    using Chat.Server.Auth;
 
     //	+--------+			+--------+			+--------+
     //	| Source |			| Server |			| Target |

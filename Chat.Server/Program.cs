@@ -4,7 +4,7 @@
     using System.Net;
 
     using Chat.Server.API;
-    using Chat.Server.login;
+    using Chat.Server.Auth;
     using Chat.Server.Call;
     using Chat.Server.Audio;
     using Chat.Server.Network;

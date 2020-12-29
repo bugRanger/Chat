@@ -1,4 +1,4 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Server.Auth
 {
     using System;
     using System.Net;

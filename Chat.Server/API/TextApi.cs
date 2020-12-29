@@ -7,6 +7,8 @@
     using Chat.Api.Messages;
     using Chat.Api.Messages.Text;
 
+    using Chat.Server.Auth;
+
     public class TextApi : IApiModule
     {
         #region Fields

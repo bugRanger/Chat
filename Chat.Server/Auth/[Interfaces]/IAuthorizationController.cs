@@ -1,9 +1,7 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Server.Auth
 {
     using System;
     using System.Net;
-
-    using Chat.Server.login;
 
     public interface IAuthorizationController : IUserContainer
     {

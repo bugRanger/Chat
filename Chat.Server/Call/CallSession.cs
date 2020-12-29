@@ -5,7 +5,9 @@
     using System.Collections.Generic;
 
     using Chat.Api.Messages.Call;
+
     using Chat.Server.Audio;
+    using Chat.Server.Auth;
 
     public class CallSession : ICallSession
     {

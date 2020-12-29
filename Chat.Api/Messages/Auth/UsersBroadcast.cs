@@ -1,7 +1,8 @@
-﻿namespace Chat.Api.Messages.login
+﻿namespace Chat.Api.Messages.Auth
 {
     using System;
     using System.Linq;
+
     using Newtonsoft.Json;
 
     public class UsersBroadcast : IMessage, IEquatable<UsersBroadcast>
