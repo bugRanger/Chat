@@ -79,11 +79,16 @@
 
             _cancellation = new CancellationTokenSource();
 
+            await ListenAsync(_cancellation.Token);
+        }
+
+        public async Task ListenAsync(CancellationToken token)
+        {
+            token.Register(() => _listener?.Close());
+
             await Task.Run(async () =>
             {
                 _listener.Listen(_limit);
-
-                var token = _cancellation.Token;
 
                 while (!token.IsCancellationRequested)
                 {
@@ -127,8 +132,6 @@
 
         public void Stop()
         {
-            _listener?.Close();
-
             FreeToken();
             FreeSocket();
         }
@@ -187,6 +190,7 @@
             if (disposing)
             {
                 FreeToken();
+                FreeSocket();
             }
 
             _disposing = true;

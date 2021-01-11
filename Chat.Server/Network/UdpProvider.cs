@@ -135,8 +135,6 @@
 
         public void Stop()
         {
-            _listener?.Close();
-
             FreeToken();
             FreeSocket();
         }
@@ -178,6 +176,7 @@
             if (disposing)
             {
                 FreeToken();
+                FreeSocket();
             }
 
             _disposing = true;
