@@ -33,7 +33,7 @@
 
         IEnumerable<IUser> GetParticipants();
 
-        void RaiseNotify();
+        void RaiseState();
 
         #endregion Methods
     }

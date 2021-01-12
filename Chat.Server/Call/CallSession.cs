@@ -97,7 +97,7 @@
             }
         }
 
-        public void RaiseNotify()
+        public void RaiseState()
         {
             Notify?.Invoke(this);
         }

@@ -102,7 +102,7 @@
 
             _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
 
-            session.RaiseNotify();
+            session.RaiseState();
         }
 
         private void HandleCallInvite(IPEndPoint remote, int index, CallInviteRequest request)
@@ -138,7 +138,7 @@
             var routeId = session.AppendOrUpdate(source, request.RoutePort);
             _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
 
-            session.RaiseNotify();
+            session.RaiseState();
         }
 
         private void HandleCallCancel(IPEndPoint remote, int index, CallCancelRequest request)
@@ -171,7 +171,7 @@
             }
 
             session.Remove(source);
-            session.RaiseNotify();
+            session.RaiseState();
         }
 
         private void OnConnectionClosing(IPEndPoint remote, bool inactive)

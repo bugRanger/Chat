@@ -52,6 +52,7 @@
             }
 
             var router = _routerFactory(_container);
+
             session = new CallSession(router)
             {
                 Id = sessionId,
@@ -97,6 +98,7 @@
         {
             if (session.State == CallState.Idle)
             {
+                session.Notify -= OnSessionNotify;
                 _sessions.TryRemove(session.Id, out _);
             }
 
