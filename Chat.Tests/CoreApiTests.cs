@@ -82,7 +82,7 @@
         [Test]
         public void UnauthorizationNotLogginTest()
         {
-            // Arrage
+            // Arrange
             ConnectionTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"logout\",\"Payload\":{}}");
@@ -100,7 +100,7 @@
         [Test]
         public void UnauthorizationTest()
         {
-            // Arrage
+            // Arrange
             AuthorizationTest();
             AuthorizationTest();
 
@@ -121,7 +121,7 @@
         [Test]
         public void ReAuthorizationWithRenameTest()
         {
-            // Arrage
+            // Arrange
             AuthorizationTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"Dummy\"}}");
@@ -140,7 +140,7 @@
         [Test]
         public void DuplicateAuthorizationAnotherAddressTest()
         {
-            // Arrage
+            // Arrange
             AuthorizationTest();
             ConnectionTest();
 
@@ -159,7 +159,7 @@
         [Test]
         public void DuplicateAuthorizationTest()
         {
-            // Arrage
+            // Arrange
             AuthorizationTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"User1\"}}");
@@ -177,7 +177,7 @@
         [Test]
         public void AuthorizationTest()
         {
-            // Arrage
+            // Arrange
             var remotes = Remotes.ToArray();
             var users = string.Join(",", Remotes.Select((s, i) => $"\"User{i + 1}\""));
             ConnectionTest();
@@ -201,7 +201,7 @@
         [Test]
         public void ConnectionTest() 
         {
-            // Arrage
+            // Arrange
             Remotes.Add(new IPEndPoint(IPAddress.Parse($"127.0.0.{Remotes.Count + 1}"), 5000));
 
             // Act
@@ -215,7 +215,7 @@
         [Test]
         public void DisconnectionTest()
         {
-            // Arrage
+            // Arrange
             AuthorizationTest();
             AuthorizationTest();
 

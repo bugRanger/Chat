@@ -36,7 +36,7 @@
         [Test]
         public void BridgeRouteTest()
         {
-            // Arrage
+            // Arrange
             InviteCallingTest();
 
             var packetRoute1 = new AudioPacket
@@ -67,7 +67,7 @@
         [Test]
         public void CancelCallingTest()
         {
-            // Arrage
+            // Arrange
             InviteCallingTest();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
@@ -90,7 +90,7 @@
         [Test]
         public void RejectCallingTest()
         {
-            // Arrage
+            // Arrange
             InitCallingTest();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
@@ -113,7 +113,7 @@
         [Test]
         public void InviteCallingNotFoundTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.AuthorizationTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":8888}}");
@@ -129,7 +129,7 @@
         [Test]
         public void InviteCallingNotLogginTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.ConnectionTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":8888}}");
@@ -145,7 +145,7 @@
         [Test]
         public void InviteCallingTest()
         {
-            // Arrage
+            // Arrange
             InitCallingTest();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
@@ -179,7 +179,7 @@
         [Test]
         public void InitCallingNotLogginTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.ConnectionTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":8888}}");
@@ -195,7 +195,7 @@
         [Test]
         public void DuplicateInitCallingTest()
         {
-            // Arrage
+            // Arrange
             InitCallingTest();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
@@ -218,7 +218,7 @@
         [Test]
         public void InitCallingNotExistsTargetTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.AuthorizationTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":8888}}");
@@ -234,7 +234,7 @@
         [Test]
         public void InitCallingTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.AuthorizationTest();
             _coreTests.AuthorizationTest();
 

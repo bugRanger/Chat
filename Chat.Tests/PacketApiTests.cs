@@ -58,7 +58,7 @@ namespace Chat.Tests
         [TestCaseSource(nameof(Messages))]
         public void PackTests(string type, string payload, IMessage message)
         {
-            // Arrage
+            // Arrange
             _message = message;
             var expected = Encoding.UTF8.GetBytes("{\"Id\":1,\"Type\":\"" + type + "\",\"Payload\":{" + payload + "}}");
             expected =
@@ -77,7 +77,7 @@ namespace Chat.Tests
         [TestCaseSource(nameof(Messages))]
         public void UnpackTests(string type, string payload, IMessage message)
         {
-            // Arrage
+            // Arrange
             var offset = 0;
             var expectedOffset = 33
                 + Encoding.UTF8.GetBytes(type).Length

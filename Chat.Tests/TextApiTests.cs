@@ -30,7 +30,7 @@
         [Test]
         public void PrivateMessageNotLogginTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.ConnectionTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"message\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"Hi!\"}}");
@@ -46,7 +46,7 @@
         [Test]
         public void PrivateMessageNotExistsTargetTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.AuthorizationTest();
 
             var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"message\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"Hi!\"}}");
@@ -62,7 +62,7 @@
         [Test]
         public void PrivateMessageTest()
         {
-            // Arrage
+            // Arrange
             _coreTests.AuthorizationTest();
             _coreTests.AuthorizationTest();
 
