@@ -47,6 +47,7 @@
             tmpOffset += 4;
 
             Payload = new ArraySegment<byte>(buffer, tmpOffset, length - tmpOffset);
+            tmpOffset += Payload.Count;
 
             offset = tmpOffset;
             return true;
