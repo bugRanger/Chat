@@ -16,7 +16,7 @@
     {
         #region Constants
 
-        private const int HEADER_SIZE = 2;
+        private const int HEADER_SIZE = 4;
 
         #endregion Constants
 
@@ -82,11 +82,11 @@
             if (buffer == null || count - offset <= HEADER_SIZE)
                 return false;
             
-            var length = BitConverter.ToUInt16(buffer);
+            var length = BitConverter.ToInt32(buffer);
             if (count - offset < HEADER_SIZE + length)
                 return false;
 
-            var message = Encoding.UTF8.GetString(buffer, HEADER_SIZE, length);
+            var message = Encoding.UTF8.GetString(new Span<byte>(buffer, HEADER_SIZE, length));
 
             request = JsonConvert.DeserializeObject<MessageContainer>(message);
 
@@ -107,7 +107,7 @@
         {
             var bytes = Encoding.UTF8.GetBytes(message);
             bytes =
-                BitConverter.GetBytes((ushort)bytes.Length)
+                BitConverter.GetBytes(bytes.Length)
                 .Concat(bytes)
                 .ToArray();
 
