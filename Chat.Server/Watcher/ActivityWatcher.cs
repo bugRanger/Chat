@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
+    using System.Diagnostics;
 
     public class ActivityWatcher : IActivityWatcher
     {
@@ -65,11 +66,15 @@
 
                     foreach (var item in connections)
                     {
-                        if (item.Value + Interval > time)
+                        if (item.Value + Interval * TimeSpan.TicksPerMillisecond > time)
                             continue;
 
-                        if (_remoteToLastActive.TryRemove(item.Key, out _))
-                            _network.Disconnect(item.Key, true);
+                        if (!_remoteToLastActive.TryRemove(item.Key, out _))
+                            continue;
+
+                        _network.Disconnect(item.Key, true);
+
+                        Trace.WriteLine($"Disconnect: {item.Key}");
                     }
 
                     await Task.Delay(CHECK_INTERVAL);
@@ -98,7 +103,7 @@
             _remoteToLastActive[remote] = GetTime();
         }
 
-        private long GetTime() => DateTime.Now.ToFileTimeUtc();
+        private long GetTime() => DateTime.Now.Ticks;
 
         #endregion Methods
     }
