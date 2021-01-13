@@ -174,6 +174,7 @@
             Assert.AreEqual(2, _coreTests.Routers[^1].Count);
             Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _coreTests.Routers[^1][1]);
             Assert.AreEqual(new IPEndPoint(user2.Remote.Address, 8888), _coreTests.Routers[^1][2]);
+            Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Active, session.State);
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
@@ -213,6 +214,7 @@
             Assert.AreEqual(2, session.GetParticipants().Count());
             Assert.AreEqual(1, _coreTests.Routers[^1].Count);
             Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _coreTests.Routers[^1][1]);
+            Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Calling, session.State);
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
@@ -260,6 +262,7 @@
             Assert.AreEqual(2, session.GetParticipants().Count());
             Assert.AreEqual(1, _coreTests.Routers[^1].Count);
             Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _coreTests.Routers[^1][1]);
+            Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Calling, session.State);
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
