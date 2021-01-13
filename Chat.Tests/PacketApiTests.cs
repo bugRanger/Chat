@@ -62,7 +62,7 @@ namespace Chat.Tests
             _message = message;
             var expected = Encoding.UTF8.GetBytes("{\"Id\":1,\"Type\":\"" + type + "\",\"Payload\":{" + payload + "}}");
             expected =
-                BitConverter.GetBytes((ushort)expected.Length)
+                BitConverter.GetBytes(expected.Length)
                 .Concat(expected)
                 .ToArray();
 
@@ -79,7 +79,7 @@ namespace Chat.Tests
         {
             // Arrange
             var offset = 0;
-            var expectedOffset = 33
+            var expectedOffset = 35
                 + Encoding.UTF8.GetBytes(type).Length
                 + Encoding.UTF8.GetBytes(payload).Length;
 
