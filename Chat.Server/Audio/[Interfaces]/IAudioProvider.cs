@@ -3,19 +3,19 @@
     using System;
     using System.Net;
 
-    public delegate void PackedReceived(int routeId, ArraySegment<byte> bytes);
+    using Chat.Media;
 
     public interface IAudioProvider
     {
         #region Events
 
-        event PackedReceived Received;
+        event Action<IAudioPacket> Received;
 
         #endregion Events
 
         #region Methods
 
-        void Send(IPEndPoint target, int routeId, ArraySegment<byte> bytes);
+        void Send(IPEndPoint target, IAudioPacket packet);
 
         #endregion Methods
     }

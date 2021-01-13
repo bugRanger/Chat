@@ -4,6 +4,8 @@
     using System.Net;
     using System.Linq;
     using System.Collections.Generic;
+
+    using Chat.Media;
     using Chat.Server.Call;
 
     public class BridgeRouter : IAudioRouter
@@ -65,21 +67,28 @@
             }
         }
 
-        private void OnProviderReceived(int routeId, ArraySegment<byte> bytes) 
+        private void OnProviderReceived(IAudioPacket packet) 
         {
-            if (!_routes.ContainsKey(routeId))
+            if (!_routes.ContainsKey(packet.RouteId))
             {
                 return;
             }
 
             foreach (var route in _routes.ToArray())
             {
-                if (route.Key == routeId)
+                if (route.Key == packet.RouteId)
                 {
                     continue;
                 }
+                
+                var repack = new AudioPacket
+                {
+                    RouteId = route.Key,
+                    Timestamp = packet.Timestamp,
+                    Payload = packet.Payload,
+                };
 
-                _provider.Send(route.Value, route.Key, bytes);
+                _provider.Send(route.Value, repack);
             }
         }
 

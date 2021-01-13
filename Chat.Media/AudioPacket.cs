@@ -2,18 +2,21 @@
 { 
     using System;
 
-    public class AudioPacket
+    public class AudioPacket : IAudioPacket
     {
         #region Constants
 
         private const int HEADER_LENGTH = 2;
-        private const int PACKET_LENGTH = 4;
+        private const int PACKET_LENGTH = 8;
 
         #endregion Constants
 
         #region Properties
 
+        /// TODO Impl multiple combine packet.
         public int RouteId { get; set; }
+
+        public int Timestamp { get; set; }
 
         public ArraySegment<byte> Payload { get; set; }
 
@@ -40,6 +43,8 @@
 
             RouteId = BitConverter.ToInt32(buffer, tmpOffset);
             tmpOffset += 4;
+            Timestamp = BitConverter.ToInt32(buffer, tmpOffset);
+            tmpOffset += 4;
 
             Payload = new ArraySegment<byte>(buffer, tmpOffset, length - tmpOffset);
 
@@ -57,6 +62,8 @@
             BitConverter.TryWriteBytes(span.Slice(offset), buffer.Length);
             offset += 2;
             BitConverter.TryWriteBytes(span.Slice(offset), RouteId);
+            offset += 4;
+            BitConverter.TryWriteBytes(span.Slice(offset), Timestamp);
             offset += 4;
 
             Buffer.BlockCopy(Payload.Array, Payload.Offset, buffer, offset, Payload.Count);

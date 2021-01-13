@@ -15,7 +15,7 @@
 
         #region Events
 
-        public event PackedReceived Received;
+        public event Action<IAudioPacket> Received;
 
         #endregion Events
 
@@ -35,23 +35,16 @@
                 return;
             }
 
-            Received?.Invoke(packet.RouteId, packet.Payload);
+            Received?.Invoke(packet);
         }
 
         #endregion Constructors
 
         #region Methods
 
-        public void Send(IPEndPoint target, int routeId, ArraySegment<byte> bytes)
+        public void Send(IPEndPoint target, IAudioPacket packet)
         {
-            var packet = new AudioPacket()
-            {
-                RouteId = routeId,
-                Payload = bytes,
-            }
-            .Pack();
-
-            _network.Send(target, packet);
+            _network.Send(target, packet.Pack());
         }
 
         #endregion Methods
