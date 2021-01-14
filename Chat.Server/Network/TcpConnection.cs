@@ -34,7 +34,7 @@
 
         #region Events
 
-        public event Action<bool> Closing;
+        public event Action<ITcpConnection, bool> Closing;
 
         #endregion Events
 
@@ -72,8 +72,6 @@
 
         public async Task ListenAsync(PreparePacket prepare, CancellationToken token)
         {
-            token.Register(() => Disconnect(false));
-
             await Task.Run(() =>
             {
                 var count = 0;
@@ -106,13 +104,6 @@
 
                     while (offset > position)
                     {
-                        var packet = new ArraySegment<byte>(buffer, position, offset - position);
-
-                        if (_logger.IsTraceEnabled)
-                        {
-                            _logger.Trace("Received packet: " + BitConverter.ToString(packet.ToArray()));
-                        }
-
                         position += offset;
                     }
 
@@ -124,13 +115,15 @@
                 }
             }, 
             token);
+
+            Disconnect(false);
         }
 
         public void Disconnect(bool inactive)
         {
-            Closing?.Invoke(inactive);
+            Closing?.Invoke(this, inactive);
 
-            _socket.Close();
+            _socket?.Close();
 
             FreeStream();
             FreeSocket();
@@ -160,7 +153,7 @@
             socket.Dispose();
         }
 
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
             {

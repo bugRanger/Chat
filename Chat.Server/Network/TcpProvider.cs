@@ -109,11 +109,7 @@
                         if (!_connections.TryAdd(socket.RemoteEndPoint, client = new TcpConnection(socket)))
                             continue;
 
-                        client.Closing += (inactive) =>
-                        {
-                            ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
-                            _connections.TryRemove(client.RemoteEndPoint, out _);
-                        };
+                        client.Closing += Client_Closing;
 
                         _ = client.ListenAsync(PreparePacket, token);
 
@@ -128,6 +124,14 @@
                     await Task.Delay(INACTIVE_INTERVAL);
                 }
             });
+        }
+
+        private void Client_Closing(ITcpConnection client, bool inactive)
+        {
+            client.Closing -= Client_Closing;
+
+            _connections.TryRemove(client.RemoteEndPoint, out _);
+            ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
         }
 
         public void Stop()
@@ -182,7 +186,7 @@
             socket.Dispose();
         }
 
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposing)
                 return;

@@ -13,7 +13,7 @@
 
         #region Events
 
-        event Action<bool> Closing;
+        event Action<ITcpConnection, bool> Closing;
 
         #endregion Events
 
