@@ -80,6 +80,7 @@
                 while (!token.IsCancellationRequested)
                 {
                     int received = 0;
+                    
                     try
                     {
                         received = _stream.Read(buffer, count, PACKET_SIZE - count);
@@ -109,19 +110,16 @@
             }, 
             token);
 
-            Disconnect(false);
-        }
-
-        public void Disconnect(bool inactive)
-        {
-            Closing?.Invoke(this, inactive);
-
-            _socket?.Close();
-
             FreeStream();
             FreeSocket();
         }
 
+        public void Disconnect(bool inactive)
+        {
+            _socket.Close();
+            Closing?.Invoke(this, inactive);
+        }
+        
         private void FreeStream()
         {
             Stream stream = _stream;

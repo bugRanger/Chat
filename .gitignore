@@ -8,3 +8,5 @@ Chat.Tests/bin/
 Chat.Tests/obj/
 /Chat.Media/obj
 /Chat.Media/bin/Debug/netcoreapp3.1
+/Chat.Client/obj
+/Chat.Client/bin/Debug/netcoreapp3.1

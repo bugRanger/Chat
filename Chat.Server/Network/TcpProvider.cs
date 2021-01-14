@@ -82,7 +82,12 @@
             await ListenAsync(_cancellation.Token);
         }
 
-        public async Task ListenAsync(CancellationToken token)
+        public void Stop()
+        {
+            _listener?.Close();
+        }
+
+        private async Task ListenAsync(CancellationToken token)
         {
             token.Register(() => _listener?.Close());
 
@@ -124,18 +129,7 @@
                     await Task.Delay(INACTIVE_INTERVAL);
                 }
             });
-        }
-
-        private void Client_Closing(ITcpConnection client, bool inactive)
-        {
-            client.Closing -= Client_Closing;
-
-            _connections.TryRemove(client.RemoteEndPoint, out _);
-            ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
-        }
-
-        public void Stop()
-        {
+            
             FreeToken();
             FreeSocket();
         }
@@ -160,6 +154,14 @@
             }
 
             connection.Disconnect(inactive);
+        }
+
+        private void Client_Closing(ITcpConnection client, bool inactive)
+        {
+            client.Closing -= Client_Closing;
+
+            _connections.TryRemove(client.RemoteEndPoint, out _);
+            ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
         }
 
         private void FreeToken()

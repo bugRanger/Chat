@@ -75,7 +75,12 @@
             await ListenAsync(PreparePacket, _cancellation.Token);
         }
 
-        public async Task ListenAsync(PreparePacket prepare, CancellationToken token)
+        public void Stop()
+        {
+            _listener?.Close();
+        }
+
+        private async Task ListenAsync(PreparePacket prepare, CancellationToken token)
         {
             token.Register(() => _listener?.Close());
 
@@ -131,10 +136,7 @@
                 }
             },
             token);
-        }
-
-        public void Stop()
-        {
+            
             FreeToken();
             FreeSocket();
         }
