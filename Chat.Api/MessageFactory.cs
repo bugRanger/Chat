@@ -96,19 +96,19 @@
         {
             request = null;
 
-            if (buffer == null)
+            if (buffer == null || offset >= count)
                 return false;
 
             int length = count;
-            int tempOffset = 0;
+            int tempOffset = offset;
 
             if (UseHeader)
             {
                 if (count <= HEADER_SIZE)
                     return false;
 
-                length = BitConverter.ToInt32(buffer);
-                tempOffset = HEADER_SIZE;
+                length = BitConverter.ToInt32(new Span<byte>(buffer, tempOffset, 4));
+                tempOffset += HEADER_SIZE;
             }
 
             using (var memory = new MemoryStream(buffer, tempOffset, length))
@@ -123,7 +123,7 @@
 
             request.Payload = ((JObject)request.Payload).ToObject(type, _serializer);
 
-            offset += tempOffset + length;
+            offset = tempOffset + length;
             return true;
         }
 

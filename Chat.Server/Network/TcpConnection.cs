@@ -98,14 +98,7 @@
                     count += received;
 
                     int offset = 0;
-                    int position = 0;
-
                     prepare?.Invoke(RemoteEndPoint, buffer, ref offset, count);
-
-                    while (offset > position)
-                    {
-                        position += offset;
-                    }
 
                     count -= offset;
                     if (count > 0)

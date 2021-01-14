@@ -38,13 +38,13 @@ namespace Chat.Tests
                 new MessageBroadcast { Source = "User1", Target = "User2", Message = "Hi!" }),
 
             new TestCaseData(
-                "call-request", "\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":888", 
+                "call-request", "\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":888",
                 new CallRequest { Source = "User1", Target = "User2", RoutePort = 888 }),
             new TestCaseData(
-                "call-broadcast", "\"SessionId\":1,\"Participants\":[\"User1\"],\"State\":\"Calling\"", 
+                "call-broadcast", "\"SessionId\":1,\"Participants\":[\"User1\"],\"State\":\"Calling\"",
                 new CallBroadcast { SessionId = 1, Participants = new []{ "User1" }, State = CallState.Calling }),
             new TestCaseData(
-                "call-response", "\"SessionId\":1,\"RouteId\":123", 
+                "call-response", "\"SessionId\":1,\"RouteId\":123",
                 new CallResponse { SessionId = 1, RouteId = 123 }),
             new TestCaseData(
                 "call-invite", "\"SessionId\":1,\"RoutePort\":888",
@@ -106,6 +106,47 @@ namespace Chat.Tests
             Assert.AreEqual(1, request.Id);
             Assert.AreEqual(type, request.Type);
             Assert.AreEqual(_message, request.Payload);
+        }
+
+        [Test]
+        public void UnpackWithOffsetTests()
+        {
+            // Arrange
+            var offset = 0;
+            var expectedOffset = 162;
+            var messageFactory = new MessageFactory(true);
+
+            var multiPacket = new byte[0]
+                .Concat(BitConverter.GetBytes(50))
+                .Concat(Encoding.UTF8.GetBytes("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"User1\"}}"))
+                .Concat(BitConverter.GetBytes(50))
+                .Concat(Encoding.UTF8.GetBytes("{\"Id\":2,\"Type\":\"login\",\"Payload\":{\"User\":\"User2\"}}"))
+                .Concat(BitConverter.GetBytes(50))
+                .Concat(Encoding.UTF8.GetBytes("{\"Id\":3,\"Type\":\"login\",\"Payload\":{\"User\":\"User3\"}}"))
+                .ToArray();
+
+            for (int i = 1; i <= 3; i++)
+            {
+                var message = new LoginRequest { User = $"User{i}" };
+
+                // Act
+                var success = messageFactory.TryUnpack(multiPacket, ref offset, multiPacket.Length, out var request);
+
+                // Assert
+                Assert.AreEqual(true, success);
+                Assert.AreEqual(54 * i, offset);
+                Assert.AreEqual(i, request.Id);
+                Assert.AreEqual("login", request.Type);
+                Assert.AreEqual(message, request.Payload);
+            }
+
+            // Act
+            var result = messageFactory.TryUnpack(multiPacket, ref offset, multiPacket.Length, out var requestNulleble);
+
+            // Assert
+            Assert.AreEqual(false, result);
+            Assert.AreEqual(expectedOffset, offset);
+            Assert.AreEqual(null, requestNulleble);
         }
 
         [TestCaseSource(nameof(Messages))]

@@ -107,12 +107,10 @@
         {
             try
             {
-                if (!_messageFactory.TryUnpack(bytes, ref offset, count, out var request))
+                while (_messageFactory.TryUnpack(bytes, ref offset, count, out var request))
                 {
-                    return;
+                    Handle(remote, request.Id, (IMessage)request.Payload);
                 }
-
-                Handle(remote, request.Id, (IMessage)request.Payload);
             }
             catch (Exception ex)
             {
