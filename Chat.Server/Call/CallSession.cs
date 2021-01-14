@@ -64,7 +64,7 @@
                 }
 
                 _participants[user] = routeId;
-                Refresh();
+                RefreshState();
 
                 return routeId;
             }
@@ -80,7 +80,7 @@
                 }
 
                 _router.DelRoute(routeId);
-                Refresh();
+                RefreshState();
             }
         }
 
@@ -102,7 +102,7 @@
             Notify?.Invoke(this);
         }
 
-        private void Refresh()
+        private void RefreshState()
         {
             switch (State)
             {
