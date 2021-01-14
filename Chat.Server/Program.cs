@@ -3,6 +3,8 @@
     using System;
     using System.Net;
 
+    using NLog;
+
     using Chat.Server.API;
     using Chat.Server.Auth;
     using Chat.Server.Call;
@@ -14,7 +16,7 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Press key:\r\n S - stop\r\n Q - exit");
+            LogManager.Configuration ??= new NLog.Config.LoggingConfiguration();
 
             var tcpProvider = new TcpProvider(NetworkSocket.Create);
             var udpProvider = new UdpProvider(NetworkSocket.Create);
@@ -39,7 +41,9 @@
 
             // TODO Add network interfaces.
             _ = tcpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
-            _ = udpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
+            _ = udpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30011));
+
+            Console.WriteLine("Press key:\r\n S - stop\r\n Q - exit");
 
             while (true)
             {

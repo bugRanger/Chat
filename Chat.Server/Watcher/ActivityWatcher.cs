@@ -73,8 +73,6 @@
                             continue;
 
                         _network.Disconnect(item.Key, true);
-
-                        Trace.WriteLine($"Disconnect: {item.Key}");
                     }
 
                     await Task.Delay(CHECK_INTERVAL);
