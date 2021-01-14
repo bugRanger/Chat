@@ -18,8 +18,9 @@
 
         private readonly ILogger _logger;
 
-        private readonly List<IApiModule> _modules;
         private readonly ITcpСontroller _network;
+        private readonly IMessageFactory _messageFactory;
+        private readonly List<IApiModule> _modules;
         private readonly Dictionary<Type, HandleMessage> _messages;
 
         #endregion Fields
@@ -32,10 +33,11 @@
 
         #region Constructors
 
-        public CoreApi(ITcpСontroller network)
+        public CoreApi(ITcpСontroller network, IMessageFactory messageFactory)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
+            _messageFactory = messageFactory;
             _messages = new Dictionary<Type, HandleMessage>();
             _modules = new List<IApiModule>();
 
@@ -55,7 +57,7 @@
 
         public void Send(IMessage message, IPEndPoint remote, int index)
         {
-            if (!PacketFactory.TryPack(index, message, out var bytes))
+            if (!_messageFactory.TryPack(index, message, out var bytes))
             {
                 _logger.Error("Failed to pack");
                 return;
@@ -66,7 +68,7 @@
 
         public void Send(IMessage message, params IPEndPoint[] remotes)
         {
-            if (!PacketFactory.TryPack(0, message, out var bytes))
+            if (!_messageFactory.TryPack(0, message, out var bytes))
             {
                 _logger.Error("Failed to pack");
                 return;
@@ -105,7 +107,7 @@
         {
             try
             {
-                if (!PacketFactory.TryUnpack(bytes, ref offset, count, out var request))
+                if (!_messageFactory.TryUnpack(bytes, ref offset, count, out var request))
                 {
                     return;
                 }

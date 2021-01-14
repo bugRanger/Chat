@@ -5,6 +5,8 @@
 
     using NLog;
 
+    using Chat.Api;
+
     using Chat.Server.API;
     using Chat.Server.Auth;
     using Chat.Server.Call;
@@ -31,7 +33,7 @@
             var calls = new CallController((container) => new BridgeRouter(container, audioProvider));
             var authorization = new AuthorizationController();
 
-            var core = new CoreApi(tcpProvider);
+            var core = new CoreApi(tcpProvider, new MessageFactory(true));
 
             new AuthApi(core, authorization);
             new TextApi(core, authorization);

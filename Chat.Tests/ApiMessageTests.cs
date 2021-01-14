@@ -12,8 +12,15 @@ namespace Chat.Tests
     using Chat.Api.Messages.Text;
     using Chat.Api.Messages.Call;
 
-    public class PacketApiTests
+    public class ApiMessageTests
     {
+        #region Constants
+
+        private const int HEADER_LENGTH = 4;
+        private const int MESSAGE_PATTERN_LENGTH = 31;
+
+        #endregion Constants
+
         #region Fields
 
         private static TestCaseData[] Messages =
@@ -48,10 +55,11 @@ namespace Chat.Tests
         };
 
         private IMessage _message;
-
         private byte[] _packetBytes;
 
         #endregion Fields
+
+        #region Methods
 
         // TODO Add negative tests.
 
@@ -60,6 +68,8 @@ namespace Chat.Tests
         {
             // Arrange
             _message = message;
+
+            var messageFactory = new MessageFactory(true);
             var expected = Encoding.UTF8.GetBytes("{\"Id\":1,\"Type\":\"" + type + "\",\"Payload\":{" + payload + "}}");
             expected =
                 BitConverter.GetBytes(expected.Length)
@@ -67,7 +77,7 @@ namespace Chat.Tests
                 .ToArray();
 
             // Act
-            var result = PacketFactory.TryPack(1, _message, out _packetBytes);
+            var result = messageFactory.TryPack(1, _message, out _packetBytes);
 
             // Assert
             Assert.IsTrue(result);
@@ -79,14 +89,16 @@ namespace Chat.Tests
         {
             // Arrange
             var offset = 0;
-            var expectedOffset = 35
+            var messageFactory = new MessageFactory(true);
+            var expectedOffset = MESSAGE_PATTERN_LENGTH
+                + HEADER_LENGTH
                 + Encoding.UTF8.GetBytes(type).Length
                 + Encoding.UTF8.GetBytes(payload).Length;
 
             PackTests(type, payload, message);
 
             // Act
-            var result = PacketFactory.TryUnpack(_packetBytes, ref offset, _packetBytes.Length, out var request);
+            var result = messageFactory.TryUnpack(_packetBytes, ref offset, _packetBytes.Length, out var request);
 
             // Assert
             Assert.IsTrue(result);
@@ -95,5 +107,47 @@ namespace Chat.Tests
             Assert.AreEqual(type, request.Type);
             Assert.AreEqual(_message, request.Payload);
         }
+
+        [TestCaseSource(nameof(Messages))]
+        public void PackWithoutHeaderTests(string type, string payload, IMessage message)
+        {
+            // Arrange
+            _message = message;
+
+            var messageFactory = new MessageFactory(false);
+            var expected = Encoding.UTF8.GetBytes("{\"Id\":1,\"Type\":\"" + type + "\",\"Payload\":{" + payload + "}}");
+
+            // Act
+            var result = messageFactory.TryPack(1, _message, out _packetBytes);
+
+            // Assert
+            Assert.IsTrue(result);
+            CollectionAssert.AreEqual(expected, _packetBytes);
+        }
+
+        [TestCaseSource(nameof(Messages))]
+        public void UnpackWithoutHeaderTests(string type, string payload, IMessage message)
+        {
+            // Arrange
+            var offset = 0;
+            var messageFactory = new MessageFactory(false);
+            var expectedOffset = MESSAGE_PATTERN_LENGTH
+                + Encoding.UTF8.GetBytes(type).Length
+                + Encoding.UTF8.GetBytes(payload).Length;
+
+            PackWithoutHeaderTests(type, payload, message);
+
+            // Act
+            var result = messageFactory.TryUnpack(_packetBytes, ref offset, _packetBytes.Length, out var request);
+
+            // Assert
+            Assert.IsTrue(result);
+            Assert.AreEqual(expectedOffset, offset);
+            Assert.AreEqual(1, request.Id);
+            Assert.AreEqual(type, request.Type);
+            Assert.AreEqual(_message, request.Payload);
+        }
+
+        #endregion Methods
     }
 }

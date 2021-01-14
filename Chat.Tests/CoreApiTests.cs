@@ -20,21 +20,21 @@
     [TestFixture]
     public class CoreApiTests
     {
-        #region Fields
+        #region Properties
 
         public List<TestEvent> ActualEvent { get; private set; }
         public List<TestEvent> ExpectedEvent { get; private set; }
 
         public List<IPEndPoint> Remotes { get; private set; }
         public List<IAudioRouter> Routers { get; private set; }
-
+        public MessageFactory MessageFactory { get; private set; }
         public CoreApi Core { get; private set; }
         public ICallingController Calls { get; private set; }
         public IAuthorizationController Authorization { get; private set; }
 
         public Mock<ITcpСontroller> NetworkMoq { get; private set; }
 
-        #endregion Fields
+        #endregion Properties
 
         #region Constructors
 
@@ -62,7 +62,8 @@
                     NetworkMoq.Raise(s => s.ConnectionClosing += null, remote, inactive);
                 });
 
-            Core = new CoreApi(NetworkMoq.Object);
+            MessageFactory = new MessageFactory(true);
+            Core = new CoreApi(NetworkMoq.Object, MessageFactory);
             Calls = new CallController((container) =>
             {
                 Routers.Add(new BridgeRouter(container, new AudioProvider(NetworkMoq.Object)));
@@ -85,8 +86,8 @@
             // Arrange
             ConnectionTest();
 
-            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"logout\",\"Payload\":{}}");
-            ExpectedEvent.Add(new TestEvent(Remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"logout\",\"Payload\":{}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
 
             // Act
             NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
@@ -104,10 +105,10 @@
             AuthorizationTest();
             AuthorizationTest();
 
-            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"logout\",\"Payload\":{}}");
-            ExpectedEvent.Add(new TestEvent(Remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"logout\",\"Payload\":{}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
             ExpectedEvent.Add(new TestEvent(Remotes[0], false));
-            ExpectedEvent.Add(new TestEvent(Remotes[1], PacketFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User1\"}}")));
+            ExpectedEvent.Add(new TestEvent(Remotes[1], MessageFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User1\"}}")));
 
             // Act
             NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
@@ -124,9 +125,9 @@
             // Arrange
             AuthorizationTest();
 
-            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"Dummy\"}}");
-            ExpectedEvent.Add(new TestEvent(Remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
-            ExpectedEvent.Add(new TestEvent(Remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[]}}")));
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"Dummy\"}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[]}}")));
 
             // Act
             NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
@@ -144,8 +145,8 @@
             AuthorizationTest();
             ConnectionTest();
 
-            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"User1\"}}");
-            ExpectedEvent.Add(new TestEvent(Remotes[1], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"AuthDuplicate\",\"Reason\":\"User exists\"}}")));
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"User1\"}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[1], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"AuthDuplicate\",\"Reason\":\"User exists\"}}")));
 
             // Act
             NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[1], request, 0, request.Length);
@@ -162,8 +163,8 @@
             // Arrange
             AuthorizationTest();
 
-            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"User1\"}}");
-            ExpectedEvent.Add(new TestEvent(Remotes[0], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"AuthDuplicate\",\"Reason\":\"User exists\"}}")));
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"User1\"}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"AuthDuplicate\",\"Reason\":\"User exists\"}}")));
 
             // Act
             NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
@@ -182,12 +183,12 @@
             var users = string.Join(",", Remotes.Select((s, i) => $"\"User{i + 1}\""));
             ConnectionTest();
 
-            var request = PacketFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\""+ $"User{Remotes.Count}" + "\"}}");
-            ExpectedEvent.Add(new TestEvent(Remotes[^1], PacketFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
-            ExpectedEvent.Add(new TestEvent(Remotes[^1], PacketFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[" + users + "]}}")));
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\""+ $"User{Remotes.Count}" + "\"}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[^1], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            ExpectedEvent.Add(new TestEvent(Remotes[^1], MessageFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[" + users + "]}}")));
             foreach (var remote in remotes)
             {
-                ExpectedEvent.Add(new TestEvent(remote, PacketFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[\"" + $"User{Remotes.Count}" + "\"]}}")));
+                ExpectedEvent.Add(new TestEvent(remote, MessageFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[\"" + $"User{Remotes.Count}" + "\"]}}")));
             }
 
             // Act
@@ -219,7 +220,7 @@
             AuthorizationTest();
             AuthorizationTest();
 
-            ExpectedEvent.Add(new TestEvent(Remotes[0], PacketFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User2\"}}")));
+            ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User2\"}}")));
 
             // Act
             NetworkMoq.Raise(s => s.ConnectionClosing += null, Remotes[^1], false);
