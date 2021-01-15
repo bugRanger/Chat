@@ -97,7 +97,7 @@
             _core.Send(new UserOfflineBroadcast { User = user.Name }, remotes);
         }
 
-        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
+        private void OnConnectionClosing(IPEndPoint remote)
         {
             if (!_authorization.TryRemove(remote, out IUser user))
             {

@@ -55,11 +55,11 @@
                     ActualEvent.Add(new TestEvent(remote, data.ToArray()));
                 });
             NetworkMoq
-                .Setup(s => s.Disconnect(It.IsAny<IPEndPoint>(), It.IsAny<bool>()))
-                .Callback<IPEndPoint, bool>((remote, inactive) =>
+                .Setup(s => s.Disconnect(It.IsAny<IPEndPoint>()))
+                .Callback<IPEndPoint>((remote) =>
                 {
-                    ActualEvent.Add(new TestEvent(remote, inactive));
-                    NetworkMoq.Raise(s => s.ConnectionClosing += null, remote, inactive);
+                    ActualEvent.Add(new TestEvent(remote));
+                    NetworkMoq.Raise(s => s.ConnectionClosing += null, remote);
                 });
 
             MessageFactory = new MessageFactory(true);
@@ -107,7 +107,7 @@
 
             var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"logout\",\"Payload\":{}}");
             ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
-            ExpectedEvent.Add(new TestEvent(Remotes[0], false));
+            ExpectedEvent.Add(new TestEvent(Remotes[0]));
             ExpectedEvent.Add(new TestEvent(Remotes[1], MessageFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User1\"}}")));
 
             // Act
@@ -223,7 +223,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User2\"}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.ConnectionClosing += null, Remotes[^1], false);
+            NetworkMoq.Raise(s => s.ConnectionClosing += null, Remotes[^1]);
 
             // Assert
             Assert.IsFalse(Authorization.TryGet(Remotes[^1], out _));

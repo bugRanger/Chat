@@ -27,7 +27,7 @@
 
         #region Events
 
-        public event Action<IPEndPoint, bool> ConnectionClosing;
+        public event Action<IPEndPoint> ConnectionClosing;
 
         #endregion Events
 
@@ -82,7 +82,7 @@
 
         public void Disconnect(IPEndPoint remote)
         {
-            _network.Disconnect(remote, false);
+            _network.Disconnect(remote);
         }
 
         public void Registration<T>(Action<IPEndPoint, int, T> action)
@@ -123,9 +123,9 @@
             }
         }
 
-        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
+        private void OnConnectionClosing(IPEndPoint remote)
         {
-            ConnectionClosing?.Invoke(remote, inactive);
+            ConnectionClosing?.Invoke(remote);
         }
 
         #endregion Methods

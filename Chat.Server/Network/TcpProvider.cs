@@ -35,7 +35,7 @@
         #region Events
 
         public event Action<IPEndPoint> ConnectionAccepted;
-        public event Action<IPEndPoint, bool> ConnectionClosing;
+        public event Action<IPEndPoint> ConnectionClosing;
         public event PreparePacket PreparePacket;
 
         #endregion Events
@@ -145,7 +145,7 @@
             connection.Send(bytes);
         }
 
-        public void Disconnect(IPEndPoint remote, bool inactive)
+        public void Disconnect(IPEndPoint remote)
         {
             if (!_connections.TryGetValue(remote, out ITcpConnection connection))
             {
@@ -153,15 +153,15 @@
                 return;
             }
 
-            connection.Disconnect(inactive);
+            connection.Disconnect();
         }
 
-        private void Client_Closing(ITcpConnection client, bool inactive)
+        private void Client_Closing(ITcpConnection client)
         {
             client.Closing -= Client_Closing;
 
             _connections.TryRemove(client.RemoteEndPoint, out _);
-            ConnectionClosing?.Invoke(client.RemoteEndPoint, inactive);
+            ConnectionClosing?.Invoke(client.RemoteEndPoint);
         }
 
         private void FreeToken()

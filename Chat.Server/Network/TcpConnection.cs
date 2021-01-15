@@ -34,7 +34,7 @@
 
         #region Events
 
-        public event Action<ITcpConnection, bool> Closing;
+        public event Action<ITcpConnection> Closing;
 
         #endregion Events
 
@@ -80,7 +80,7 @@
                 while (!token.IsCancellationRequested)
                 {
                     int received = 0;
-                    
+
                     try
                     {
                         received = _stream.Read(buffer, count, PACKET_SIZE - count);
@@ -107,19 +107,20 @@
                         Buffer.BlockCopy(buffer, offset, buffer, 0, count);
                     }
                 }
-            }, 
+            },
             token);
 
             FreeStream();
             FreeSocket();
+
+            Closing?.Invoke(this);
         }
 
-        public void Disconnect(bool inactive)
+        public void Disconnect()
         {
-            _socket.Close();
-            Closing?.Invoke(this, inactive);
+            _socket?.Close();
         }
-        
+
         private void FreeStream()
         {
             Stream stream = _stream;

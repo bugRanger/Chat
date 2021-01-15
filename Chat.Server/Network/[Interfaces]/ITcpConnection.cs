@@ -13,7 +13,7 @@
 
         #region Events
 
-        event Action<ITcpConnection, bool> Closing;
+        event Action<ITcpConnection> Closing;
 
         #endregion Events
 
@@ -21,7 +21,7 @@
 
         void Send(ArraySegment<byte> bytes);
 
-        void Disconnect(bool inactive);
+        void Disconnect();
 
         #endregion Methods
     }

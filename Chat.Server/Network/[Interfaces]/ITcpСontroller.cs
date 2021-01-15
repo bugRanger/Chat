@@ -9,13 +9,13 @@
         #region Events
 
         event Action<IPEndPoint> ConnectionAccepted;
-        event Action<IPEndPoint, bool> ConnectionClosing;
+        event Action<IPEndPoint> ConnectionClosing;
 
         #endregion Events
 
         #region Methods
 
-        void Disconnect(IPEndPoint remote, bool inactive);
+        void Disconnect(IPEndPoint remote);
 
         #endregion Methods
     }

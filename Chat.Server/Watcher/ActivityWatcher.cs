@@ -72,7 +72,7 @@
                         if (!_remoteToLastActive.TryRemove(item.Key, out _))
                             continue;
 
-                        _network.Disconnect(item.Key, true);
+                        _network.Disconnect(item.Key);
                     }
 
                     await Task.Delay(CHECK_INTERVAL);
@@ -91,7 +91,7 @@
             _remoteToLastActive[remote] = GetTime();
         }
 
-        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
+        private void OnConnectionClosing(IPEndPoint remote)
         {
             _remoteToLastActive.TryRemove(remote, out _);
         }

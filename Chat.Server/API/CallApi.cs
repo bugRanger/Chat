@@ -174,7 +174,7 @@
             session.RaiseState();
         }
 
-        private void OnConnectionClosing(IPEndPoint remote, bool inactive)
+        private void OnConnectionClosing(IPEndPoint remote)
         {
             if (!_users.TryGet(remote, out IUser target))
             {

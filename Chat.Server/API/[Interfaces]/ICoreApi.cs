@@ -9,7 +9,7 @@
     {
         #region Events
 
-        event Action<IPEndPoint, bool> ConnectionClosing;
+        event Action<IPEndPoint> ConnectionClosing;
 
         #endregion Events
 
