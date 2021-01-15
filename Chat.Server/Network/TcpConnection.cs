@@ -110,10 +110,10 @@
             },
             token);
 
+            Closing?.Invoke(this);
+
             FreeStream();
             FreeSocket();
-
-            Closing?.Invoke(this);
         }
 
         public void Disconnect()
