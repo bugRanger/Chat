@@ -8,13 +8,13 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(Source))]
+        [JsonProperty(nameof(Source), Required = Required.Always)]
         public string Source { get; set; }
 
-        [JsonProperty(nameof(Target))]
+        [JsonProperty(nameof(Target), Required = Required.Always)]
         public string Target { get; set; }
 
-        [JsonProperty(nameof(Message))]
+        [JsonProperty(nameof(Message), Required = Required.Always)]
         public string Message { get; set; }
 
         #endregion Properties

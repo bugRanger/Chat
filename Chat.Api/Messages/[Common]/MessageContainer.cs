@@ -6,13 +6,13 @@
 
     public class MessageContainer
     {
-        [JsonProperty(nameof(Id))]
+        [JsonProperty(nameof(Id), Required = Required.Always)]
         public int Id { get; set; }
 
-        [JsonProperty(nameof(Type))]
+        [JsonProperty(nameof(Type), Required = Required.Always)]
         public string Type { get; set; }
 
-        [JsonProperty(nameof(Payload))]
+        [JsonProperty(nameof(Payload), Required = Required.Always)]
         public object Payload { get; set; }
     }
 }

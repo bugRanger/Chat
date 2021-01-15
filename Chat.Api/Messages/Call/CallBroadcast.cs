@@ -9,10 +9,10 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(SessionId))]
+        [JsonProperty(nameof(SessionId), Required = Required.Always)]
         public int SessionId { get; set; }
 
-        [JsonProperty(nameof(Participants))]
+        [JsonProperty(nameof(Participants), Required = Required.Always)]
         public string[] Participants { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]

@@ -8,10 +8,10 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(SessionId))]
+        [JsonProperty(nameof(SessionId), Required = Required.Always)]
         public int SessionId { get; set; }
 
-        [JsonProperty(nameof(RouteId))]
+        [JsonProperty(nameof(RouteId), Required = Required.Always)]
         public int RouteId { get; set;  }
 
         #endregion Properties

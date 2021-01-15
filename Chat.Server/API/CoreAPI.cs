@@ -8,7 +8,7 @@
 
     using Chat.Api;
     using Chat.Api.Messages;
-
+    using Newtonsoft.Json;
 
     delegate void HandleMessage(IPEndPoint remote, int index, IMessage message);
 
@@ -111,6 +111,11 @@
                 {
                     Handle(remote, request.Id, (IMessage)request.Payload);
                 }
+            }
+            catch (JsonException ex)
+            {
+                _logger.Warn(ex);
+                Send(new MessageResult { Status = StatusCode.Failure, Reason = ex.Message }, remote);
             }
             catch (Exception ex)
             {

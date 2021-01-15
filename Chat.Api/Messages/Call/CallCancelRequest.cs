@@ -8,7 +8,7 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(SessionId))]
+        [JsonProperty(nameof(SessionId), Required = Required.Always)]
         public int SessionId { get; set; }
 
         #endregion Properties

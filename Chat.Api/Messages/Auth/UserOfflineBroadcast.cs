@@ -9,7 +9,7 @@
     {
         #region Properties
 
-        [JsonProperty(nameof(User))]
+        [JsonProperty(nameof(User), Required = Required.Always)]
         public string User { get; set; }
 
         #endregion Properties
