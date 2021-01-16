@@ -27,7 +27,7 @@
         {
             _receiverCodec = receivedCodec;
             _receiver = receiver;
-            _receiver.Recevied += OnRecevied;
+            _receiver.Received += OnRecevied;
 
             _senderCodec = senderCodec;
             _sender = sender;
@@ -52,7 +52,7 @@
             _cancellation?.Cancel();
             _cancellation?.Dispose();
 
-            _receiver.Recevied -= OnRecevied;
+            _receiver.Received -= OnRecevied;
             _receiver.Dispose();
             _sender.Dispose();
 

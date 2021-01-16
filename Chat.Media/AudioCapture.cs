@@ -6,6 +6,12 @@
 
     public class AudioCapture : IDisposable
     {
+        #region Constants
+
+        private const int DEVICE_DEFAULT = 1;
+
+        #endregion Constants
+
         #region Fields
 
         private readonly IAudioCodec _codec;
@@ -16,7 +22,7 @@
 
         #region Constructors
 
-        public AudioCapture(IAudioCodec codec, int inputDeviceNumber, IAudioSender audioSender)
+        public AudioCapture(IAudioCodec codec, IAudioSender audioSender, int inputDeviceNumber = DEVICE_DEFAULT)
         {
             _codec = codec;
             _audioSender = audioSender;
@@ -40,6 +46,7 @@
             _waveIn.DataAvailable -= OnAudioCaptured;
             _waveIn.StopRecording();
             _waveIn.Dispose();
+            _codec.Dispose();
 
             _audioSender.Dispose();
         }

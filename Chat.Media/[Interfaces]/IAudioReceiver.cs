@@ -4,6 +4,6 @@
 
     public interface IAudioReceiver : IDisposable
     {
-        event Action<ArraySegment<byte>> Recevied;
+        event Action<ArraySegment<byte>> Received;
     }
 }

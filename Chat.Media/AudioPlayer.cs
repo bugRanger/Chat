@@ -21,7 +21,7 @@
         {
             _codec = codec;
             _receiver = receiver;
-            _receiver.Recevied += OnReceived;
+            _receiver.Received += OnReceived;
 
             _waveProvider = new BufferedWaveProvider(codec.Format);
             _waveOut = new WaveOut();
@@ -35,8 +35,9 @@
 
         public void Dispose()
         {
-            _receiver.Recevied -= OnReceived;
+            _receiver.Received -= OnReceived;
             _receiver.Dispose();
+            _codec.Dispose();
 
             _waveOut.Dispose();
         }
