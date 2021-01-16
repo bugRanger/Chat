@@ -72,7 +72,7 @@
                     .Build(CallInviteHandle),
 
                 new CommandBuilder<HangUpCommand>("hangup")
-                    .Parameter("u", (cmd, value) => cmd.SessionId = int.Parse(value))
+                    //.Parameter("u", (cmd, value) => cmd.SessionId = int.Parse(value))
                     .Build(CallHangUpHandle),
             };
 
@@ -134,7 +134,7 @@
                         if (CallSession == null && broadcast.State == CallState.Calling)
                         {
                             CallSessionId = broadcast.SessionId;
-                            Send(new CallInviteRequest { SessionId = broadcast.SessionId, RoutePort = CallSocket.Remote.Port });
+                            Send(new CallInviteRequest { SessionId = broadcast.SessionId, RoutePort = CallSocket.Local.Port });
                         }
                         else if (CallSession != null && CallSession.Id == broadcast.SessionId && broadcast.State == CallState.Idle)
                         {
@@ -206,12 +206,12 @@
 
         static void CallInviteHandle(CallInviteCommand command)
         {
-            Send(new CallInviteRequest { SessionId = CallSessionId/*command.SessionId*/, RoutePort = CallSocket.Remote.Port });
+            Send(new CallInviteRequest { SessionId = CallSessionId/*command.SessionId*/, RoutePort = CallSocket.Local.Port });
         }
 
         static void CallHangUpHandle(HangUpCommand command)
         {
-            Send(new CallCancelRequest { SessionId = command.SessionId });
+            Send(new CallCancelRequest { SessionId = CallSessionId/*command.SessionId*/ });
         }
 
         #endregion Calls

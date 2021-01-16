@@ -22,7 +22,7 @@
 
         #region Properties
 
-        public IPEndPoint Remote => (IPEndPoint)_socket?.RemoteEndPoint;
+        public IPEndPoint Local => (IPEndPoint)_socket?.LocalEndPoint;
 
         #endregion Properties
 
