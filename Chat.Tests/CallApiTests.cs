@@ -275,6 +275,22 @@
         }
 
         [Test]
+        public void InitCallingSelfTest()
+        {
+            // Arrange
+            _coreTests.AuthorizationTest();
+
+            var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User1\",\"RoutePort\":8888}}");
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Don't target at yourself\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
         public void InitCallingTest()
         {
             // Arrange

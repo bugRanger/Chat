@@ -85,6 +85,11 @@
                 status = StatusCode.UserNotFound;
                 reason = "Target not found";
             }
+            else if (source == target)
+            {
+                status = StatusCode.Failure;
+                reason = "Don't target at yourself";
+            }
             else if (!_callController.TryGetOrAdd(source.Name, request.Target, out session))
             {
                 status = StatusCode.CallDuplicate;
