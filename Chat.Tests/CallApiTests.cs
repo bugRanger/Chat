@@ -145,6 +145,25 @@
         }
 
         [Test]
+        public void InviteCallingWithInvalidParametersTest()
+        {
+            // Arrange
+            InitCallingTest();
+
+            _coreTests.Authorization.TryGet("User1", out var user1);
+            _coreTests.Authorization.TryGet("User2", out var user2);
+
+            var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":88888}}");
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
         public void InviteCallingTest()
         {
             // Arrange
@@ -216,6 +235,26 @@
             Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _coreTests.Routers[^1][1]);
             Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Calling, session.State);
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
+        public void InitCallingWithInvalidParametersTest()
+        {
+            // Arrange
+            _coreTests.AuthorizationTest();
+            _coreTests.AuthorizationTest();
+
+            _coreTests.Authorization.TryGet("User1", out var user1);
+            _coreTests.Authorization.TryGet("User2", out var user2);
+
+            var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-request\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"RoutePort\":88888}}");
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+
+            // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
 

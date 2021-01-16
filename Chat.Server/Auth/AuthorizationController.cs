@@ -31,6 +31,11 @@
         {
             lock (_locker)
             {
+                if (remote == null || string.IsNullOrWhiteSpace(name))
+                {
+                    return null;
+                }
+
                 if (!_remoteToUser.TryGetValue(remote, out User user))
                 {
                     user = new User();

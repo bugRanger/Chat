@@ -63,6 +63,11 @@
                 status = StatusCode.UserNotFound;
                 reason = "Target not found";
             }
+            else if (string.IsNullOrWhiteSpace(message.Message))
+            {
+                status = StatusCode.Failure;
+                reason = $"Invalid parameters: {nameof(MessageBroadcast.Message)}";
+            }
 
             _core.Send(new MessageResult { Status = status, Reason = reason }, remote, index);
             if (status != StatusCode.Success)
@@ -79,7 +84,7 @@
         {
             _core.Send(new MessageResult { Status = StatusCode.Failure, Reason = "Not supported" }, remote, index);
         }
-        
+
         #endregion Methods
     }
 }

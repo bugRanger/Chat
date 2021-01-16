@@ -46,7 +46,7 @@
             IEnumerable<IUser> users = null;
             IEnumerable<IPEndPoint> remotes = null;
 
-            if (_authorization.TryGet(request.User, out _) 
+            if (_authorization.TryGet(request.User, out _)
                 || (_authorization.TryGet(remote, out user) && user.Name == request.User))
             {
                 status = StatusCode.AuthDuplicate;
@@ -58,6 +58,11 @@
                 remotes = users.Select(s => s.Remote);
 
                 user = _authorization.AddOrUpdate(remote, request.User);
+                if (user == null)
+                {
+                    status = StatusCode.Failure;
+                    reason = $"Invalid parameters: {nameof(LoginRequest.User)}";
+                }
             }
 
             _core.Send(new MessageResult { Status = status, Reason = reason }, remote, index);

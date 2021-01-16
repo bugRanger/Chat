@@ -121,9 +121,15 @@
             if (!_messageToType.TryGetValue(request.Type, out Type type))
                 return false;
 
-            request.Payload = ((JObject)request.Payload).ToObject(type, _serializer);
+            try
+            {
+                request.Payload = ((JObject)request.Payload).ToObject(type, _serializer);
+            }
+            finally
+            {
+                offset = tempOffset + length;
+            }
 
-            offset = tempOffset + length;
             return true;
         }
 

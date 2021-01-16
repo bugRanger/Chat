@@ -60,6 +60,23 @@
         }
 
         [Test]
+        public void PrivateMessageWithInvalidParametersTest()
+        {
+            // Arrange
+            _coreTests.AuthorizationTest();
+            _coreTests.AuthorizationTest();
+
+            var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"message\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User2\",\"Message\":\"\"}}");
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: Message\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
         public void PrivateMessageTest()
         {
             // Arrange

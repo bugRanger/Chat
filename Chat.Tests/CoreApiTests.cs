@@ -200,6 +200,23 @@
         }
 
         [Test]
+        public void AuthorizationWithInvalidParametersTest()
+        {
+            // Arrange
+            ConnectionTest();
+
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"\"}}");
+            ExpectedEvent.Add(new TestEvent(Remotes[^1], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: User\"}}")));
+
+            // Act
+            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[^1], request, 0, request.Length);
+
+            // Assert
+            Assert.AreEqual(false, Authorization.TryGet(Remotes[^1], out _));
+            CollectionAssert.AreEqual(ExpectedEvent, ActualEvent);
+        }
+
+        [Test]
         public void ConnectionTest() 
         {
             // Arrange
@@ -209,7 +226,7 @@
             NetworkMoq.Raise(s => s.ConnectionAccepted += null, Remotes[^1]);
 
             // Assert
-            Assert.IsFalse(Authorization.TryGet(Remotes[^1], out _));
+            Assert.AreEqual(false, Authorization.TryGet(Remotes[^1], out _));
             CollectionAssert.AreEqual(ExpectedEvent, ActualEvent);
         }
 
@@ -226,7 +243,7 @@
             NetworkMoq.Raise(s => s.ConnectionClosing += null, Remotes[^1]);
 
             // Assert
-            Assert.IsFalse(Authorization.TryGet(Remotes[^1], out _));
+            Assert.AreEqual(false, Authorization.TryGet(Remotes[^1], out _));
             CollectionAssert.AreEqual(ExpectedEvent, ActualEvent);
         }
 
