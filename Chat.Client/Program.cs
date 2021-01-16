@@ -125,6 +125,7 @@
                     case CallResponse response:
                         if (CallSession == null)
                         {
+                            CallSessionId = response.SessionId;
                             CallSession = new CallSession(response.SessionId, response.RouteId, new PcmCodec());
                             CallSession.Prepared += Send;
                         }
