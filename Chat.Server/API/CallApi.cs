@@ -95,7 +95,7 @@
                 status = StatusCode.CallDuplicate;
                 reason = "Call exists";
             }
-            else if (!ushort.TryParse(request.RoutePort.ToString(), out _))
+            else if (!ushort.TryParse(request.RoutePort.ToString(), out _) || request.RoutePort == ushort.MinValue)
             {
                 status = StatusCode.Failure;
                 reason = $"Invalid parameters: {nameof(CallRequest.RoutePort)}";
@@ -138,7 +138,7 @@
                 status = StatusCode.UserNotFound;
                 reason = "User not found in call session";
             }
-            else if (!ushort.TryParse(request.RoutePort.ToString(), out _))
+            else if (!ushort.TryParse(request.RoutePort.ToString(), out _) || request.RoutePort == ushort.MinValue)
             {
                 status = StatusCode.Failure;
                 reason = $"Invalid parameters: {nameof(CallInviteRequest.RoutePort)}";

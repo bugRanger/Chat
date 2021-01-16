@@ -60,6 +60,7 @@
 
                 if (port != 0)
                 {
+                    // TODO Impl check invalid params => double port for route.
                     routeId = _router.AddRoute(new IPEndPoint(user.Remote.Address, port));
                 }
 

@@ -145,7 +145,7 @@
         }
 
         [Test]
-        public void InviteCallingWithInvalidParametersTest()
+        public void InviteCallingOutRangeRouteIdTest()
         {
             // Arrange
             InitCallingTest();
@@ -154,6 +154,25 @@
             _coreTests.Authorization.TryGet("User2", out var user2);
 
             var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":88888}}");
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
+        public void InviteCallingWithZeroRouteIdTest()
+        {
+            // Arrange
+            InitCallingTest();
+
+            _coreTests.Authorization.TryGet("User1", out var user1);
+            _coreTests.Authorization.TryGet("User2", out var user2);
+
+            var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":0}}");
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
 
             // Act

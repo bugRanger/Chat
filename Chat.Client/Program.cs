@@ -201,7 +201,7 @@
 
         static void CallHandle(CallCommand command)
         {
-            Send(new CallRequest { Source = Me, Target = command.Target });
+            Send(new CallRequest { Source = Me, Target = command.Target, RoutePort = CallSocket.Local.Port });
         }
 
         static void CallInviteHandle(CallInviteCommand command)
