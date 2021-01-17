@@ -52,8 +52,8 @@
         public CallApi(ICoreApi core, IUserContainer users, ICallingController calling)
         {
             _core = core;
-            _core.ConnectionClosing += OnConnectionClosing;
             _users = users;
+            _users.Disconnected += OnUserDisconnected;
             _callController = calling;
             _callController.SessionChanged += OnCallSessionChanged;
 
@@ -189,14 +189,9 @@
             session.RaiseState();
         }
 
-        private void OnConnectionClosing(IPEndPoint remote)
+        private void OnUserDisconnected(IUser user)
         {
-            if (!_users.TryGet(remote, out IUser target))
-            {
-                return;
-            }
-
-            _callController.Disconnect(target);
+            _callController.Disconnect(user);
         }
 
         private void OnCallSessionChanged(ICallSession session)

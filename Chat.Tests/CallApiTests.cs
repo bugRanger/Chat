@@ -67,6 +67,29 @@
         }
 
         [Test]
+        public void DisconnectUserTest()
+        {
+            // Arrange
+            InviteCallingTest();
+
+            _coreTests.Authorization.TryGet("User1", out var user1);
+
+            var expectedId = -1951180698;
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\"],\"State\":\"Idle\"}}")));
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User2\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.ConnectionClosing += null, _coreTests.Remotes[^1]);
+
+            // Assert
+            Assert.AreEqual(false, _coreTests.Authorization.TryGet(_coreTests.Remotes[^1], out _));
+            Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
+            Assert.AreEqual(1, _coreTests.Routers[^1].Count);
+            Assert.AreEqual(new IPEndPoint(user1.Remote.Address, 8888), _coreTests.Routers[^1][1]);
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
         public void CancelCallingTest()
         {
             // Arrange

@@ -16,6 +16,7 @@
         private readonly object _locker;
         private readonly IAudioRouter _router;
         private readonly Dictionary<IUser, int> _participants;
+        private bool _disposing;
 
         #endregion Fields
 
@@ -43,6 +44,11 @@
             _router = router;
 
             State = CallState.Created;
+        }
+
+        ~CallSession()
+        {
+            Dispose(false);
         }
 
         #endregion Constructors
@@ -85,11 +91,6 @@
             }
         }
 
-        public void Dispose()
-        {
-            _router.Dispose();
-        }
-
         public bool Contains(IUser user)
         {
             return _participants.TryGetValue(user, out _);
@@ -106,6 +107,23 @@
         public void RaiseState()
         {
             Notify?.Invoke(this);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposing)
+            {
+                return;
+            }
+
+            _router.Dispose();
+            _disposing = true;
         }
 
         private void RefreshState()

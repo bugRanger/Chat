@@ -80,6 +80,7 @@
                 }
 
                 session.Remove(user);
+                session.RaiseState();
             }
         }
 
@@ -94,18 +95,24 @@
             return hash;
         }
 
-        private void OnSessionNotify(ICallSession session) 
+        private void OnSessionNotify(ICallSession session)
         {
-            if (session.State == CallState.Idle)
-            {
-                _sessions.TryRemove(session.Id, out _);
-                session.Notify -= OnSessionNotify;
-                session.Dispose();
-            }
-
             SessionChanged?.Invoke(session);
-        }
 
-        #endregion Methods
+            switch (session.State)
+            {
+                case CallState.Idle:
+                    _sessions.TryRemove(session.Id, out _);
+
+                    session.Notify -= OnSessionNotify;
+                    session.Dispose();
+                    break;
+
+                default:
+                    break;
+            }
+        }
     }
+
+    #endregion Methods
 }

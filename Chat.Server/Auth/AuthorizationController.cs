@@ -14,6 +14,12 @@
 
         #endregion Fields
 
+        #region Events
+
+        public event Action<IUser> Disconnected;
+
+        #endregion Events
+
         #region Constructors
 
         public AuthorizationController() 
@@ -71,6 +77,8 @@
 
                 _remoteToUser.Remove(user.Remote);
                 _nameToUser.Remove(user.Name);
+
+                Disconnected?.Invoke(user);
 
                 return true;
             }
