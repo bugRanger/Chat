@@ -2,7 +2,7 @@
 {
     using System;
 
-    public interface IAudioReceiver : IDisposable
+    public interface IAudioReceiver
     {
         event Action<ArraySegment<byte>> Received;
     }

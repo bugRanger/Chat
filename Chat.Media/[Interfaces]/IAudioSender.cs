@@ -2,7 +2,7 @@
 {
     using System;
 
-    public interface IAudioSender : IDisposable
+    public interface IAudioSender
     {
         void Send(ArraySegment<byte> bytes);
     }

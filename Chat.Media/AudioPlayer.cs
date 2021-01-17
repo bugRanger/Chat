@@ -24,7 +24,7 @@
             _receiver.Received += OnReceived;
 
             _waveProvider = new BufferedWaveProvider(codec.Format);
-            _waveOut = new WaveOut();
+            _waveOut = new DirectSoundOut(DirectSoundOut.DSDEVID_DefaultVoicePlayback);
             _waveOut.Init(_waveProvider);
             _waveOut.Play();
         }
@@ -36,7 +36,6 @@
         public void Dispose()
         {
             _receiver.Received -= OnReceived;
-            _receiver.Dispose();
             _codec.Dispose();
 
             _waveOut.Dispose();
@@ -44,8 +43,15 @@
 
         private void OnReceived(ArraySegment<byte> compressed)
         {
-            byte[] decoded = _codec.Decode(compressed);
-            _waveProvider.AddSamples(decoded, 0, decoded.Length);
+            try
+            {
+                byte[] decoded = _codec.Decode(compressed);
+                _waveProvider.AddSamples(decoded, 0, decoded.Length);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         #endregion Methods

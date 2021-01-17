@@ -16,7 +16,7 @@
 
         private readonly IAudioCodec _codec;
         private readonly IAudioSender _audioSender;
-        private readonly WaveIn _waveIn;
+        private readonly IWaveIn _waveIn;
 
         #endregion Fields
 
@@ -27,12 +27,7 @@
             _codec = codec;
             _audioSender = audioSender;
 
-            _waveIn = new WaveIn
-            {
-                DeviceNumber = inputDeviceNumber,
-                WaveFormat = _codec.Format,
-                BufferMilliseconds = 50,
-            };
+            _waveIn = new WasapiLoopbackCapture();
             _waveIn.DataAvailable += OnAudioCaptured;
             _waveIn.StartRecording();
         }
@@ -47,14 +42,19 @@
             _waveIn.StopRecording();
             _waveIn.Dispose();
             _codec.Dispose();
-
-            _audioSender.Dispose();
         }
 
         private void OnAudioCaptured(object sender, WaveInEventArgs e)
         {
-            byte[] encoded = _codec.Encode(new ArraySegment<byte>(e.Buffer, 0, e.BytesRecorded));
-            _audioSender.Send(new ArraySegment<byte>(encoded));
+            try
+            {
+                byte[] encoded = _codec.Encode(new ArraySegment<byte>(e.Buffer, 0, e.BytesRecorded));
+                _audioSender.Send(new ArraySegment<byte>(encoded));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         #endregion Methods

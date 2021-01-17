@@ -53,8 +53,6 @@
             _cancellation?.Dispose();
 
             _receiver.Received -= OnRecevied;
-            _receiver.Dispose();
-            _sender.Dispose();
 
             _resampler?.Dispose();
         }
