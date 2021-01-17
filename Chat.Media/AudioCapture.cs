@@ -27,7 +27,12 @@
             _codec = codec;
             _audioSender = audioSender;
 
-            _waveIn = new WasapiLoopbackCapture();
+            _waveIn = new WaveInEvent() 
+            {
+                BufferMilliseconds = 100,
+                NumberOfBuffers = 2,
+                WaveFormat = codec.Format,
+            };
             _waveIn.DataAvailable += OnAudioCaptured;
             _waveIn.StartRecording();
         }
