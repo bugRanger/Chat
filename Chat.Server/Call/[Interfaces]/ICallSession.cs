@@ -7,7 +7,7 @@
 
     using Chat.Server.Auth;
 
-    public interface ICallSession
+    public interface ICallSession : IDisposable
     {
         #region Properties
 

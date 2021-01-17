@@ -67,6 +67,11 @@
             }
         }
 
+        public void Dispose()
+        {
+            _provider.Received -= OnProviderReceived;
+        }
+
         private void OnProviderReceived(IAudioPacket packet) 
         {
             if (!_routes.ContainsKey(packet.RouteId))

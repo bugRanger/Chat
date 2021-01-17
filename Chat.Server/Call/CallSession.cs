@@ -85,6 +85,11 @@
             }
         }
 
+        public void Dispose()
+        {
+            _router.Dispose();
+        }
+
         public bool Contains(IUser user)
         {
             return _participants.TryGetValue(user, out _);

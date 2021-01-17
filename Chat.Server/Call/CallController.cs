@@ -98,8 +98,9 @@
         {
             if (session.State == CallState.Idle)
             {
-                session.Notify -= OnSessionNotify;
                 _sessions.TryRemove(session.Id, out _);
+                session.Notify -= OnSessionNotify;
+                session.Dispose();
             }
 
             SessionChanged?.Invoke(session);

@@ -3,7 +3,7 @@
     using System;
     using System.Net;
 
-    public interface IAudioRouter
+    public interface IAudioRouter : IDisposable
     {
         #region Properties
 
