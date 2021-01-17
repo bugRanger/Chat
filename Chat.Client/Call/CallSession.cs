@@ -4,7 +4,7 @@
 
     using Chat.Media;
 
-    class CallSession : IAudioReceiver, IAudioSender
+    class CallSession : IAudioReceiver, IAudioSender, IDisposable
     {
         #region Fields
 
