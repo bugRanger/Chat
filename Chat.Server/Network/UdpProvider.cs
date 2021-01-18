@@ -13,6 +13,9 @@
         #region Constants
 
         private const int PACKET_SIZE = ushort.MaxValue;
+        private const uint IOC_IN = 0x80000000; 
+        private const uint IOC_VENDOR = 0x18000000; 
+        private const uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12; 
 
         #endregion Constants
 
@@ -68,6 +71,10 @@
         {
             _listener = _socketFactory(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            unchecked
+            {
+                _listener.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+            }
             _listener.Bind(endPoint);
 
             _cancellation = new CancellationTokenSource();

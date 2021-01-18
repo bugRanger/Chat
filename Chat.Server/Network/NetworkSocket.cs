@@ -90,6 +90,11 @@
             _socket.SetSocketOption(optionLevel, optionName, optionValue);
         }
 
+        public int IOControl(int ioControlCode, byte[] optionInValue, byte[] optionOutValue) 
+        {
+            return _socket.IOControl(ioControlCode, optionInValue, optionOutValue);
+        }
+
         public void Close() 
         {
             _socket.Close();

@@ -39,11 +39,12 @@
             new TextApi(core, authorization);
             new CallApi(core, authorization, calls);
 
-            watcher.Start();
+            // TODO Impl ping message.
+            //watcher.Start();
 
             // TODO Add network interfaces.
             _ = tcpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
-            _ = udpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30011));
+            _ = udpProvider.StartAsync(new IPEndPoint(IPAddress.Any, 30010));
 
             Console.WriteLine("Press key:\r\n S - stop\r\n Q - exit");
 

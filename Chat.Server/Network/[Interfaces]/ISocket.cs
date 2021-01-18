@@ -27,6 +27,8 @@
 
         void SetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, bool optionValue);
 
+        int IOControl(int ioControlCode, byte[] optionInValue, byte[] optionOutValue);
+
         Stream GetStream();
 
         void Close();
