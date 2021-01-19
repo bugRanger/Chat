@@ -15,7 +15,7 @@
 
         private readonly object _locker;
         private readonly IAudioRouter _router;
-        private readonly Dictionary<IUser, int> _participants;
+        private readonly Dictionary<IUser, int> _userToPort;
         private bool _disposing;
 
         #endregion Fields
@@ -39,7 +39,7 @@
         public CallSession(IAudioRouter router)
         {
             _locker = new object();
-            _participants = new Dictionary<IUser, int>();
+            _userToPort = new Dictionary<IUser, int>();
 
             _router = router;
 
@@ -59,18 +59,20 @@
         {
             lock (_locker)
             {
-                if (_participants.TryGetValue(user, out int routeId) && routeId != 0)
+                int routeId = 0;
+
+                if (_userToPort.TryGetValue(user, out int routePort) && routePort != 0)
                 {
+                    _router.TryGet(new IPEndPoint(user.Remote.Address, routePort), out routeId);
                     return routeId;
                 }
 
                 if (port != 0)
                 {
-                    // TODO Impl check invalid params => double port for route.
-                    routeId = _router.AddRoute(new IPEndPoint(user.Remote.Address, port));
+                    routeId = _router.Append(new IPEndPoint(user.Remote.Address, port));
                 }
 
-                _participants[user] = routeId;
+                _userToPort[user] = port;
                 RefreshState();
 
                 return routeId;
@@ -81,26 +83,26 @@
         {
             lock (_locker)
             {
-                if (!_participants.Remove(user, out int routeId))
+                if (!_userToPort.Remove(user, out int remotePort))
                 {
                     return;
                 }
 
-                _router.DelRoute(routeId);
+                _router.Remove(new IPEndPoint(user.Remote.Address, remotePort));
                 RefreshState();
             }
         }
 
         public bool Contains(IUser user)
         {
-            return _participants.TryGetValue(user, out _);
+            return _userToPort.TryGetValue(user, out _);
         }
 
         public IEnumerable<IUser> GetParticipants()
         {
             lock (_locker)
             {
-                return new List<IUser>(_participants.Keys);
+                return new List<IUser>(_userToPort.Keys);
             }
         }
 
@@ -138,8 +140,8 @@
                     State = CallState.Active;
                     break;
 
-                case CallState.Calling when _participants.Count < 2:
-                case CallState.Active when _participants.Count < 2:
+                case CallState.Calling when _userToPort.Count < 2:
+                case CallState.Active when _userToPort.Count < 2:
                     State = CallState.Idle;
                     break;
 

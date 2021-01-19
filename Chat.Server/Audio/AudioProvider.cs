@@ -5,7 +5,7 @@
 
     using Chat.Media;
 
-    public class AudioProvider : IAudioProvider
+    public class AudioProvider : IAudioProvider, IDisposable
     {
         #region Fields
 
@@ -15,7 +15,7 @@
 
         #region Events
 
-        public event Action<IAudioPacket> Received;
+        public event Action<IPEndPoint, IAudioPacket> Received;
 
         #endregion Events
 
@@ -35,7 +35,7 @@
                 return;
             }
 
-            Received?.Invoke(packet);
+            Received?.Invoke(remote, packet);
         }
 
         #endregion Constructors
@@ -45,6 +45,11 @@
         public void Send(IPEndPoint target, IAudioPacket packet)
         {
             _network.Send(target, packet.Pack());
+        }
+
+        public void Dispose()
+        {
+            _network.PreparePacket -= OnNetworkPreparePacket;
         }
 
         #endregion Methods

@@ -107,7 +107,7 @@
                 if (count <= HEADER_SIZE)
                     return false;
 
-                length = BitConverter.ToInt32(new Span<byte>(buffer, tempOffset, 4));
+                length = BitConverter.ToInt32(new Span<byte>(buffer, tempOffset, HEADER_SIZE));
                 tempOffset += HEADER_SIZE;
             }
 

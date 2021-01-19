@@ -9,7 +9,7 @@
     {
         #region Events
 
-        event Action<IAudioPacket> Received;
+        event Action<IPEndPoint, IAudioPacket> Received;
 
         #endregion Events
 

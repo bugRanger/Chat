@@ -7,17 +7,17 @@
     {
         #region Properties
 
-        IPEndPoint this[int index] { get; }
-
         int Count { get; }
 
         #endregion Properties
 
         #region Methods
 
-        int AddRoute(IPEndPoint remote);
+        int Append(IPEndPoint route);
 
-        void DelRoute(int routeId);
+        void Remove(IPEndPoint route);
+
+        bool TryGet(IPEndPoint route, out int routeId);
 
         #endregion Methods
     }

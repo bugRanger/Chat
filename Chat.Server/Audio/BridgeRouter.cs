@@ -15,13 +15,11 @@
         private readonly object _locker;
         private readonly KeyContainer _container;
         private readonly IAudioProvider _provider;
-        private readonly Dictionary<int, IPEndPoint> _routes;
+        private readonly Dictionary<IPEndPoint, int> _routes;
 
         #endregion Fields
 
         #region Properties
-
-        public IPEndPoint this[int index] => _routes[index];
 
         public int Count => _routes.Count;
 
@@ -32,7 +30,7 @@
         public BridgeRouter(KeyContainer container, IAudioProvider provider) 
         {
             _locker = new object();
-            _routes = new Dictionary<int, IPEndPoint>();
+            _routes = new Dictionary<IPEndPoint, int>();
 
             _container = container;
             _provider = provider;
@@ -43,22 +41,25 @@
 
         #region Methods
 
-        public int AddRoute(IPEndPoint remote)
+        public int Append(IPEndPoint route)
         {
             lock (_locker)
             {
-                var routeId = _container.Take();
-                _routes[routeId] = remote;
+                if (!_routes.TryGetValue(route, out int routeId))
+                {
+                    routeId = _container.Take();
+                    _routes[route] = routeId;
+                }
 
                 return routeId;
             }
         }
 
-        public void DelRoute(int routeId)
+        public void Remove(IPEndPoint route)
         {
             lock (_locker)
             {
-                if (!_routes.Remove(routeId, out _))
+                if (!_routes.Remove(route, out int routeId))
                 {
                     return;
                 }
@@ -67,33 +68,31 @@
             }
         }
 
+        public bool TryGet(IPEndPoint route, out int routeId)
+        {
+            return _routes.TryGetValue(route, out routeId);
+        }
+
         public void Dispose()
         {
             _provider.Received -= OnProviderReceived;
         }
 
-        private void OnProviderReceived(IAudioPacket packet) 
+        private void OnProviderReceived(IPEndPoint remote, IAudioPacket packet) 
         {
-            if (!_routes.ContainsKey(packet.RouteId))
+            if (remote == null || !_routes.TryGetValue(remote, out int routeId) || packet.RouteId != routeId)
             {
                 return;
             }
 
             foreach (var route in _routes.ToArray())
             {
-                if (route.Key == packet.RouteId)
+                if (route.Value == packet.RouteId)
                 {
                     continue;
                 }
-                
-                var repack = new AudioPacket
-                {
-                    RouteId = route.Key,
-                    Timestamp = packet.Timestamp,
-                    Payload = packet.Payload,
-                };
 
-                _provider.Send(route.Value, repack);
+                _provider.Send(route.Key, packet);
             }
         }
 

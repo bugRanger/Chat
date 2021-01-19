@@ -16,7 +16,6 @@
     using Chat.Server.Auth;
     using Chat.Server.Call;
     using Chat.Server.Audio;
-    using Chat.Api.Messages.Call;
 
     [TestFixture]
     public class CoreApiTests
