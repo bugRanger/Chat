@@ -90,9 +90,9 @@
             // Assert
             Assert.AreEqual(false, _coreTests.Authorization.TryGet(_coreTests.Remotes[^1], out _));
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
-            Assert.AreEqual(1, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user1.Remote.Address, 8888), out int routeId));
-            Assert.AreEqual(1, routeId);
+            Assert.AreEqual(0, _coreTests.Routers[^1].Count);
+            Assert.AreEqual(true, _coreTests.Container.HasReleased(2));
+            Assert.AreEqual(true, _coreTests.Container.HasReleased(1));
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
 
@@ -114,9 +114,9 @@
 
             // Assert
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
-            Assert.AreEqual(1, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user1.Remote.Address, 8888), out int routeId));
-            Assert.AreEqual(1, routeId);
+            Assert.AreEqual(0, _coreTests.Routers[^1].Count);
+            Assert.AreEqual(true, _coreTests.Container.HasReleased(2));
+            Assert.AreEqual(true, _coreTests.Container.HasReleased(1));
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
 
@@ -138,9 +138,8 @@
 
             // Assert
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
-            Assert.AreEqual(1, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user1.Remote.Address, 8888), out int routeId));
-            Assert.AreEqual(1, routeId);
+            Assert.AreEqual(0, _coreTests.Routers[^1].Count);
+            Assert.AreEqual(true, _coreTests.Container.HasReleased(1));
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
 

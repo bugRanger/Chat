@@ -124,6 +124,7 @@
                 return;
             }
 
+            _userToPort.Clear();
             _router.Dispose();
             _disposing = true;
         }

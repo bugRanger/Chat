@@ -16,6 +16,7 @@
     using Chat.Server.Auth;
     using Chat.Server.Call;
     using Chat.Server.Audio;
+    using System.ComponentModel;
 
     [TestFixture]
     public class CoreApiTests
@@ -25,6 +26,7 @@
         public List<TestEvent> ActualEvent { get; private set; }
         public List<TestEvent> ExpectedEvent { get; private set; }
 
+        public KeyContainer Container { get; private set; }
         public List<IPEndPoint> Remotes { get; private set; }
         public List<IAudioRouter> Routers { get; private set; }
         public MessageFactory MessageFactory { get; private set; }
@@ -66,6 +68,7 @@
             Core = new CoreApi(NetworkMoq.Object, MessageFactory);
             Calls = new CallController((container) =>
             {
+                Container ??= container;
                 Routers.Add(new BridgeRouter(container, new AudioProvider(NetworkMoq.Object)));
                 return Routers[^1];
             });

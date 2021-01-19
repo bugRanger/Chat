@@ -76,6 +76,14 @@
         public void Dispose()
         {
             _provider.Received -= OnProviderReceived;
+
+            var routes = _routes.Values.ToArray();
+            _routes.Clear();
+
+            foreach (var routeId in routes)
+            {
+                _container.Release(routeId);
+            }
         }
 
         private void OnProviderReceived(IPEndPoint remote, IAudioPacket packet) 

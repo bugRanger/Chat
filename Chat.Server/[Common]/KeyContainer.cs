@@ -1,5 +1,6 @@
 ﻿namespace Chat.Server.Call
 {
+    using System;
     using System.Collections.Generic;
 
     public class KeyContainer 
@@ -56,6 +57,11 @@
                 
                 _release.Enqueue(key);
             }
+        }
+
+        public bool HasReleased(int key)
+        {
+            return _release.Contains(key);
         }
 
         #endregion Methods
