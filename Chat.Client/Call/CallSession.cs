@@ -52,8 +52,10 @@
 
         public void Handle(IAudioPacket packet) 
         {
-            if (packet.RouteId != RouteId)
+            if (packet.SessionId != Id)
                 return;
+
+            // TODO Add buffering for sequencing, frame recovery.
 
             Received?.Invoke(packet.Payload);
         }
@@ -62,6 +64,7 @@
         {
             var packet = new AudioPacket
             {
+                SessionId = Id,
                 RouteId = RouteId,
                 Payload = bytes,
             };

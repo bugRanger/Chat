@@ -47,6 +47,7 @@
 
             var packetRoute1 = new AudioPacket
             {
+                SessionId = 123,
                 RouteId = 1,
                 Timestamp = 100,
                 Payload = new byte[] { 1 },
@@ -55,14 +56,15 @@
 
             var packetRoute2 = new AudioPacket
             {
+                SessionId = 123,
                 RouteId = 2,
                 Timestamp = 200,
                 Payload = new byte[] { 2 },
             }
             .Pack();
 
-            _coreTests.ExpectedEvent.Add(new TestEvent(route2, new AudioPacket { RouteId = 1, Timestamp = 100, Payload = new byte[] { 1 }, }.Pack()));
-            _coreTests.ExpectedEvent.Add(new TestEvent(route1, new AudioPacket { RouteId = 2, Timestamp = 200, Payload = new byte[] { 2 }, }.Pack()));
+            _coreTests.ExpectedEvent.Add(new TestEvent(route2, new AudioPacket { SessionId = 123, RouteId = 1, Timestamp = 100, Payload = new byte[] { 1 }, }.Pack()));
+            _coreTests.ExpectedEvent.Add(new TestEvent(route1, new AudioPacket { SessionId = 123, RouteId = 2, Timestamp = 200, Payload = new byte[] { 2 }, }.Pack()));
 
             // Act
             _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route1, packetRoute1.Array, packetRoute1.Offset, packetRoute1.Count);

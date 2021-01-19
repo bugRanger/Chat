@@ -6,6 +6,8 @@
     {
         #region Properties
 
+        int SessionId { get; }
+
         int RouteId { get; }
 
         int Timestamp { get; }
