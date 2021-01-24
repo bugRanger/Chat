@@ -1,0 +1,66 @@
+Upd проблемы
+	* Потери
+	* Ре-ордеринг(не последовательно)
+	* Дубликаты
+
+Jitter
+	- Уведомлять о потерях.
+	- Допускать только следующие кадры.
+	- При соблюдение последовательности кадров снижать интервал ожидания.
+
+
+Capture
+	Thread
+		var status = Jitter.Dequeue(out var frame);
+		switch(status)
+		{
+			case Wait:
+				break;
+			
+			case Play:
+				_codec.Decode(frame, out samples);
+				break;
+			
+			case Restore:
+				_codec.Restore(frame, out samples);
+				break;
+		}
+		OnNotify(frame, samples);
+		
+		Thread.Sleep(Jitter.Duration);
+	
+
+
+void Jitter.Enqueue(...)
+{
+	// Отбрасываем пакеты которые опаздали.
+	if (frame.Index <= _lastIndex)
+		return;
+	
+	// Отбрасываем пакеты которые дубликаты.
+	if (!_buffering.TryAdd(frame.Index))
+		return;
+	
+	_buffering.Add(frame.Index, frame);
+}
+
+State Jitter.Dequeue(...)
+{
+	// Calc delta.
+	if(!_buffering.TryGetValue(_lastIndex + 1, out frame) && currentTime - _lastTime < _delta)
+		return State.Wait;
+	
+	_lastTime = currentTime;
+	_lastIndex++;
+	
+	if (frame != null)
+	{
+		_buffering.Remove(frame.Index);
+		return State.Play;
+	}
+	else
+	{
+		_buffering.TryGetValue(_lastIndex, out frame);
+		return State.Restore;
+	}
+}
