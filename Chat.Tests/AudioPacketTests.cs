@@ -28,7 +28,7 @@
             {
                 SessionId = 123,
                 RouteId = 100,
-                Timestamp = 200,
+                SequenceId = 200,
                 Payload = new byte[] { 1, 2, 3 },
             };
 
@@ -55,7 +55,7 @@
             Assert.AreEqual(17, offset);
             Assert.AreEqual(123, _packet.SessionId);
             Assert.AreEqual(100, _packet.RouteId);
-            Assert.AreEqual(200, _packet.Timestamp);
+            Assert.AreEqual(200, _packet.SequenceId);
             CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, _packet.Payload);
         }
 

@@ -18,7 +18,7 @@
         /// TODO Impl multiple combine packet.
         public int RouteId { get; set; }
 
-        public int Timestamp { get; set; }
+        public uint SequenceId { get; set; }
 
         public ArraySegment<byte> Payload { get; set; }
 
@@ -47,7 +47,7 @@
             tmpOffset += 4;
             RouteId = BitConverter.ToInt32(buffer, tmpOffset);
             tmpOffset += 4;
-            Timestamp = BitConverter.ToInt32(buffer, tmpOffset);
+            SequenceId = BitConverter.ToUInt32(buffer, tmpOffset);
             tmpOffset += 4;
 
             Payload = new ArraySegment<byte>(buffer, tmpOffset, length - tmpOffset);
@@ -70,7 +70,7 @@
             offset += 4;
             BitConverter.TryWriteBytes(span.Slice(offset), RouteId);
             offset += 4;
-            BitConverter.TryWriteBytes(span.Slice(offset), Timestamp);
+            BitConverter.TryWriteBytes(span.Slice(offset), SequenceId);
             offset += 4;
 
             Buffer.BlockCopy(Payload.Array, Payload.Offset, buffer, offset, Payload.Count);

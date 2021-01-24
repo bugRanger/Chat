@@ -6,23 +6,17 @@
 
     public class AudioCapture : IDisposable
     {
-        #region Constants
-
-        private const int DEVICE_DEFAULT = 1;
-
-        #endregion Constants
-
         #region Fields
 
-        private readonly IAudioCodec _codec;
         private readonly IAudioSender _audioSender;
+        private readonly IAudioCodec _codec;
         private readonly IWaveIn _waveIn;
 
         #endregion Fields
 
         #region Constructors
 
-        public AudioCapture(IAudioCodec codec, IAudioSender audioSender, int inputDeviceNumber = DEVICE_DEFAULT)
+        public AudioCapture(IAudioCodec codec, IAudioSender audioSender)
         {
             _codec = codec;
             _audioSender = audioSender;

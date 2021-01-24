@@ -38,6 +38,7 @@
             _receiver.Received -= OnReceived;
             _codec.Dispose();
 
+            _waveOut.Stop();
             _waveOut.Dispose();
         }
 

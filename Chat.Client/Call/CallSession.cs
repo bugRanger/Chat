@@ -4,13 +4,21 @@
 
     using Chat.Media;
 
-    class CallSession : IAudioReceiver, IAudioSender, IDisposable
+    class CallSession : IAudioSender, IDisposable
     {
+        #region Constants
+
+        private const int BUFFERING_MS = 150;
+
+        #endregion Constants
+
         #region Fields
 
+        private readonly AudioBuffer _buffer;
         private readonly AudioPlayer _player;
         private readonly AudioCapture _capture;
 
+        private uint _sequenceId;
         private bool _disposing;
 
         #endregion Fields
@@ -26,7 +34,6 @@
         #region Events
 
         public event Action<IAudioPacket> Prepared;
-        public event Action<ArraySegment<byte>> Received;
 
         #endregion Events
 
@@ -34,14 +41,16 @@
 
         public CallSession(int id, int routeId, IAudioCodec codec)
         {
-            _player = new AudioPlayer(codec, this);
+            _buffer = new AudioBuffer(TimeSpan.FromMilliseconds(BUFFERING_MS));
+            _player = new AudioPlayer(codec, _buffer);
             _capture = new AudioCapture(codec, this);
+            _sequenceId = 0;
 
             Id = id;
             RouteId = routeId;
         }
 
-        ~CallSession() 
+        ~CallSession()
         {
             Dispose(false);
         }
@@ -50,14 +59,12 @@
 
         #region Methods
 
-        public void Handle(IAudioPacket packet) 
+        public void Handle(IAudioPacket packet)
         {
             if (packet.SessionId != Id)
                 return;
 
-            // TODO Add buffering for sequencing, frame recovery.
-
-            Received?.Invoke(packet.Payload);
+            _buffer.Enqueue(packet);
         }
 
         public void Send(ArraySegment<byte> bytes)
@@ -67,6 +74,7 @@
                 SessionId = Id,
                 RouteId = RouteId,
                 Payload = bytes,
+                SequenceId = ++_sequenceId,
             };
 
             Prepared?.Invoke(packet);
@@ -78,16 +86,16 @@
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing) 
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposing)
-            {
                 return;
-            }
+
+            _disposing = true;
 
             _capture.Dispose();
             _player.Dispose();
-            _disposing = true;
+            _buffer.Dispose();
         }
 
         #endregion Methods

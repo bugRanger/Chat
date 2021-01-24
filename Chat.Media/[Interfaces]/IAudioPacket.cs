@@ -10,7 +10,7 @@
 
         int RouteId { get; }
 
-        int Timestamp { get; }
+        uint SequenceId { get; }
 
         ArraySegment<byte> Payload { get; }
 
