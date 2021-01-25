@@ -103,7 +103,7 @@
             while (packet.TryUnpack(bytes, ref offset, count))
             {
                 if (CallSession == null)
-                    continue;
+                    break;
 
                 CallSession.Handle(packet);
             }
