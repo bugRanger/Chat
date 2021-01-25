@@ -4,6 +4,8 @@
     using System.Net;
     using System.Net.Sockets;
 
+    using NAudio.Wave;
+
     using Chat.Api;
     using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Call;
@@ -21,21 +23,25 @@
     {
         #region Properties
 
+        static AudioController AudioController { get; set; }
+
         static MessageFactory MessageFactory { get; set; }
 
         static EasySocket ApiSocket { get; set; }
 
         static EasySocket CallSocket { get; set; }
 
-        static string Me { get; set; }
-
         static CallSession CallSession { get; set; }
-        public static int CallSessionId { get; private set; }
+
+        static int CallSessionId { get; set; }
+
+        static string Me { get; set; }
 
         #endregion Properties
 
         static void Main(string[] args)
         {
+            AudioController = new AudioController(new WaveFormat(48000, 16, 1));
             MessageFactory = new MessageFactory(true);
 
             ApiSocket = new EasySocket(ApiReceived, () => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
@@ -103,7 +109,7 @@
             while (packet.TryUnpack(bytes, ref offset, count))
             {
                 if (CallSession == null)
-                    break;
+                    continue;
 
                 CallSession.Handle(packet);
             }
@@ -126,8 +132,12 @@
                         if (CallSession == null)
                         {
                             CallSessionId = response.SessionId;
-                            CallSession = new CallSession(response.SessionId, response.RouteId, new PcmCodec());
-                            CallSession.Prepared += Send;
+                            CallSession = new CallSession(AudioController, format => new PcmCodec(format))
+                            {
+                                Id = response.SessionId, 
+                                RouteId = response.RouteId,
+                            };
+                            CallSession.PacketPrepared += Send;
                         }
                         break;
 
@@ -137,11 +147,9 @@
                             CallSessionId = broadcast.SessionId;
                             Send(new CallInviteRequest { SessionId = broadcast.SessionId, RoutePort = CallSocket.Local.Port });
                         }
-                        else if (CallSession != null && CallSession.Id == broadcast.SessionId && broadcast.State == CallState.Idle)
+                        else if (broadcast.State == CallState.Idle)
                         {
-                            CallSession.Prepared -= Send;
-                            CallSession.Dispose();
-                            CallSession = null;
+                            CloseSession();
                         }
                         break;
 
@@ -212,7 +220,18 @@
 
         static void CallHangUpHandle(HangUpCommand command)
         {
+            CloseSession();
             Send(new CallCancelRequest { SessionId = CallSessionId/*command.SessionId*/ });
+        }
+
+        static void CloseSession()
+        {
+            if (CallSession == null)
+                return;
+
+            CallSession.PacketPrepared -= Send;
+            CallSession.Dispose();
+            CallSession = null;
         }
 
         #endregion Calls

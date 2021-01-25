@@ -8,8 +8,8 @@
     {
         WaveFormat Format { get; }
 
-        byte[] Encode(ArraySegment<byte> compressed);
+        byte[] Encode(ArraySegment<byte> uncompressed);
 
-        byte[] Decode(ArraySegment<byte> uncompressed);
+        byte[] Decode(ArraySegment<byte> compressed);
     }
 }

@@ -14,9 +14,9 @@
 
         #region Constructors
 
-        public PcmCodec() 
+        public PcmCodec(WaveFormat format) 
         {
-            Format = new WaveFormat(48000, 16, 1);
+            Format = format;
         }
 
         #endregion Constructors

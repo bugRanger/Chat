@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Tests", "Chat.Tests\Ch
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Api", "Chat.Api\Chat.Api.csproj", "{42BB46F5-5582-4AD2-ACCB-B1185909D9EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Media", "Chat.Media\Chat.Media.csproj", "{A0004333-48DE-4181-8771-2E21682AA60F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Audio", "Chat.Media\Chat.Audio.csproj", "{A0004333-48DE-4181-8771-2E21682AA60F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Client", "Chat.Client\Chat.Client.csproj", "{AE126297-4C79-47DA-9E89-4683A3DD7E52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.Client", "Chat.Client\Chat.Client.csproj", "{AE126297-4C79-47DA-9E89-4683A3DD7E52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

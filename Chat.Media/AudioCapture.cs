@@ -8,27 +8,34 @@
     {
         #region Fields
 
-        private readonly IAudioSender _audioSender;
-        private readonly IAudioCodec _codec;
         private readonly IWaveIn _waveIn;
+        private bool _disposed;
 
         #endregion Fields
 
+        #region Events
+
+        public event Action<ArraySegment<byte>> Received;
+
+        #endregion Events
+
         #region Constructors
 
-        public AudioCapture(IAudioCodec codec, IAudioSender audioSender)
+        public AudioCapture(WaveFormat format)
         {
-            _codec = codec;
-            _audioSender = audioSender;
-
             _waveIn = new WaveInEvent() 
             {
                 BufferMilliseconds = 100,
                 NumberOfBuffers = 2,
-                WaveFormat = codec.Format,
+                WaveFormat = format,
             };
             _waveIn.DataAvailable += OnAudioCaptured;
             _waveIn.StartRecording();
+        }
+
+        ~AudioCapture()
+        {
+            Dispose(false);
         }
 
         #endregion Constructors
@@ -37,23 +44,30 @@
 
         public void Dispose()
         {
-            _waveIn.DataAvailable -= OnAudioCaptured;
-            _waveIn.StopRecording();
-            _waveIn.Dispose();
-            _codec.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private void OnAudioCaptured(object sender, WaveInEventArgs e)
         {
-            try
+            Received?.Invoke(new ArraySegment<byte>(e.Buffer, 0, e.BytesRecorded));
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
             {
-                byte[] encoded = _codec.Encode(new ArraySegment<byte>(e.Buffer, 0, e.BytesRecorded));
-                _audioSender.Send(new ArraySegment<byte>(encoded));
+                return;
             }
-            catch (Exception ex)
+
+            if (disposing)
             {
-                Console.WriteLine(ex);
+                _waveIn.DataAvailable -= OnAudioCaptured;
+                _waveIn.StopRecording();
+                _waveIn.Dispose();
             }
+
+            _disposed = true;
         }
 
         #endregion Methods

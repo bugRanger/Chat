@@ -3,30 +3,33 @@
     using System;
 
     using NAudio.Wave;
+    using NAudio.Wave.SampleProviders;
 
     public class AudioPlayer : IDisposable
     {
         #region Fields
 
-        private readonly IAudioCodec _codec;
-        private readonly IAudioReceiver _receiver;
+        private readonly MixingSampleProvider _waveProvider;
         private readonly IWavePlayer _waveOut;
-        private readonly BufferedWaveProvider _waveProvider;
+        private bool _disposed;
 
         #endregion Fields
 
         #region Constructors
 
-        public AudioPlayer(IAudioCodec codec, IAudioReceiver receiver)
+        public AudioPlayer(WaveFormat format)
         {
-            _codec = codec;
-            _receiver = receiver;
-            _receiver.Received += OnReceived;
+            _waveProvider = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(format.SampleRate, format.Channels));
+            _waveProvider.AddMixerInput(new BufferedWaveProvider(format));
 
-            _waveProvider = new BufferedWaveProvider(codec.Format);
             _waveOut = new DirectSoundOut(DirectSoundOut.DSDEVID_DefaultVoicePlayback);
             _waveOut.Init(_waveProvider);
             _waveOut.Play();
+        }
+
+        ~AudioPlayer() 
+        {
+            Dispose(false);
         }
 
         #endregion Constructors
@@ -35,24 +38,36 @@
 
         public void Dispose()
         {
-            _receiver.Received -= OnReceived;
-            _codec.Dispose();
-
-            _waveOut.Stop();
-            _waveOut.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        private void OnReceived(ArraySegment<byte> compressed)
+        public void Append(ISampleProvider provider)
         {
-            try
+            _waveProvider.AddMixerInput(provider);
+        }
+
+        public void Remove(ISampleProvider provider)
+        {
+            _waveProvider.RemoveMixerInput(provider);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
             {
-                byte[] decoded = _codec.Decode(compressed);
-                _waveProvider.AddSamples(decoded, 0, decoded.Length);
+                return;
             }
-            catch (Exception ex)
+
+            if (disposing)
             {
-                Console.WriteLine(ex);
+                _waveOut.Stop();
+                _waveOut.Dispose();
+
+                _waveProvider.RemoveAllMixerInputs();
             }
+
+            _disposed = true;
         }
 
         #endregion Methods

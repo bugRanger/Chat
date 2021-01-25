@@ -1,45 +1,59 @@
 ﻿namespace Chat.Media
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using System.Collections.Concurrent;
 
-    public class AudioBuffer : IAudioReceiver, IDisposable
+    using NAudio.Wave;
+
+    public class AudioBuffer : ISampleProvider, IDisposable
     {
         #region Constants
 
-        private const int WAIT_MS = 10;
         private const int BUFFER_LIMIT = 50;
+        private const int BUFFER_WAIT = 10;
 
         #endregion Constants
 
         #region Fields
 
-        private readonly TimeSpan _delta;
-        private readonly Thread _reader;
-        private readonly Dictionary<uint, IAudioPacket> _buffering;
-        private DateTime _lastTime;
+        private readonly BufferedWaveProvider _waveProvider;
+
+        private readonly CancellationTokenSource _cancellation;
+        private readonly ConcurrentDictionary<uint, IAudioPacket> _buffering;
+        private readonly ISampleProvider _sampleProvider;
+        private readonly IAudioCodec _codec;
+        private readonly int _delta;
+
         private uint _lastIndex;
-        private bool _closing;
+        private bool _disposed;
 
         #endregion Fields
 
-        #region Events
+        #region Properties
 
-        public event Action<ArraySegment<byte>> Received;
+        public WaveFormat WaveFormat => _codec.Format;
 
-        #endregion Events
+        #endregion Properties
 
         #region Constructors
 
-        public AudioBuffer(TimeSpan delta)
+        public AudioBuffer(IAudioCodec codec, int delta)
         {
+            _codec = codec;
+            _waveProvider = new BufferedWaveProvider(_codec.Format);
+            _waveProvider.DiscardOnBufferOverflow = false;
+
+            _sampleProvider = _waveProvider.ToSampleProvider();
+
             _delta = delta;
             _lastIndex = uint.MinValue;
-            _closing = false;
-            _buffering = new Dictionary<uint, IAudioPacket>();
-            _reader = new Thread(() => Dequeue());
-            _reader.Start();
+            _buffering = new ConcurrentDictionary<uint, IAudioPacket>();
+            _cancellation = new CancellationTokenSource();
+
+            _ = Task.Run(async () => await Dequeue(_cancellation.Token));
         }
 
         #endregion Constructors
@@ -51,7 +65,13 @@
             if (packet.SequenceId <= _lastIndex)
                 return;
 
-            _buffering[GetIndex(packet.SequenceId)] = packet;
+            if (_buffering.TryAdd(GetIndex(packet.SequenceId), packet))
+                return;
+        }
+
+        public int Read(float[] buffer, int offset, int count)
+        {
+            return _sampleProvider.Read(buffer, offset, count);
         }
 
         public void Dispose()
@@ -60,31 +80,47 @@
             GC.SuppressFinalize(this);
         }
 
-        private void Dequeue()
+        private async Task Dequeue(CancellationToken token)
         {
-            while (!_closing)
+            // TODO:
+            // 1. Кадр уже есть, не смотря на время. Передаем его дальше.
+            // 2. Есть еще время для ожидания кадра.
+            // 3. Время вышло переходим к следующему кадру.
+
+            var lastTime = DateTime.Now;
+
+            while (!token.IsCancellationRequested)
             {
-                var currentTime = DateTime.Now;
-                if (!_buffering.TryGetValue(GetIndex(_lastIndex + 1), out IAudioPacket packet) && currentTime - _lastTime <= _delta)
+                var currTime = DateTime.Now;
+                try
                 {
-                    Thread.Sleep(WAIT_MS);
-                    continue;
-                }
-
-                do
-                {
-                    _lastTime = currentTime;
-                    _lastIndex = GetIndex(_lastIndex + 1);
-
-                    if (packet == null)
+                    if (!_buffering.TryGetValue(GetIndex(_lastIndex + 1), out var packet) && currTime - lastTime <= TimeSpan.FromMilliseconds(_delta))
                     {
-                        break;
+                        await Task.Delay(BUFFER_WAIT, token);
+                        continue;
                     }
 
-                    _buffering[GetIndex(packet.SequenceId)] = null;
-                    Received?.Invoke(packet.Payload);
+                    do
+                    {
+                        _lastIndex = GetIndex(_lastIndex + 1);
+                        if (packet == null || token.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        _buffering.Remove(GetIndex(packet.SequenceId), out _);
+
+                        var uncompressed = _codec.Decode(packet.Payload);
+                        _waveProvider.AddSamples(uncompressed, 0, uncompressed.Length);
+                    }
+                    while (_buffering.TryGetValue(GetIndex(_lastIndex + 1), out packet));
+
+                    lastTime = DateTime.Now;
                 }
-                while (_buffering.TryGetValue(GetIndex(_lastIndex + 1), out packet));
+                catch (OperationCanceledException)
+                {
+                    // Ignore.
+                }
             }
         }
 
@@ -95,13 +131,18 @@
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposing)
+            if (_disposed)
+            {
                 return;
+            }
 
-            _closing = true;
-            _reader.Join();
+            if (disposing)
+            {
+                _cancellation.Cancel();
+                _buffering.Clear();
+            }
 
-            _buffering.Clear();
+            _disposed = true;
         }
 
         #endregion Methods
