@@ -1,20 +1,19 @@
-﻿namespace Chat.Media.Codecs
+﻿namespace Chat.Audio.Codecs
 {
     using System;
 
-    using NAudio.Wave;
 
     public class PcmCodec : IAudioCodec
     {
         #region Properties
 
-        public WaveFormat Format { get; }
+        public AudioFormat Format { get; }
 
         #endregion Properties
 
         #region Constructors
 
-        public PcmCodec(WaveFormat format) 
+        public PcmCodec(AudioFormat format) 
         {
             Format = format;
         }

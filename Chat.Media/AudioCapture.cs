@@ -1,4 +1,4 @@
-﻿namespace Chat.Media
+﻿namespace Chat.Audio
 {
     using System;
 
@@ -21,13 +21,13 @@
 
         #region Constructors
 
-        public AudioCapture(WaveFormat format)
+        public AudioCapture(AudioFormat format)
         {
-            _waveIn = new WaveInEvent() 
+            _waveIn = new WaveInEvent()
             {
+                WaveFormat = format.ToWaveFormat(),
                 BufferMilliseconds = 100,
                 NumberOfBuffers = 2,
-                WaveFormat = format,
             };
             _waveIn.DataAvailable += OnAudioCaptured;
             _waveIn.StartRecording();

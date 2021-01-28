@@ -1,4 +1,4 @@
-﻿namespace Chat.Media
+﻿namespace Chat.Audio
 {
     using System;
 
@@ -6,7 +6,7 @@
     {
         #region Properties
 
-        int SessionId { get; }
+        //int SessionId { get; }
 
         int RouteId { get; }
 

@@ -5,20 +5,23 @@
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-
-    public delegate void ReceiveHandler(byte[] bytes, ref int offset, int count);
-
-    public class EasySocket
+    
+    public class EasySocket : INetworkStream
     {
         #region Fields
 
         private readonly Func<Socket> _factory;
-        private readonly ReceiveHandler _handler;
 
         private Socket _socket;
         private CancellationTokenSource _cancellation;
 
         #endregion Fields
+
+        #region Events
+
+        public event PreparePacket PreparePacket;
+
+        #endregion Events
 
         #region Properties
 
@@ -28,10 +31,9 @@
 
         #region Constructors
 
-        public EasySocket(ReceiveHandler handler, Func<Socket> factory)
+        public EasySocket(Func<Socket> factory)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
 
         #endregion Constructors
@@ -76,7 +78,7 @@
                                 remain += received;
                                 int offset = 0;
 
-                                _handler(buffer, ref offset, remain);
+                                PreparePacket?.Invoke(buffer, ref offset, remain);
 
                                 remain -= offset;
                                 if (remain > 0)
@@ -112,7 +114,7 @@
             _cancellation?.Cancel();
         }
 
-        public void Send(ReadOnlySpan<byte> bytes)
+        public void Send(ArraySegment<byte> bytes)
         {
             _socket?.Send(bytes);
         }

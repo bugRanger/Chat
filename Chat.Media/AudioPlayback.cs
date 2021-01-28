@@ -1,11 +1,11 @@
-﻿namespace Chat.Media
+﻿namespace Chat.Audio
 {
     using System;
 
     using NAudio.Wave;
     using NAudio.Wave.SampleProviders;
 
-    public class AudioPlayer : IDisposable
+    public class AudioPlayback : IDisposable
     {
         #region Fields
 
@@ -17,17 +17,17 @@
 
         #region Constructors
 
-        public AudioPlayer(WaveFormat format)
+        public AudioPlayback(AudioFormat format)
         {
             _waveProvider = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(format.SampleRate, format.Channels));
-            _waveProvider.AddMixerInput(new BufferedWaveProvider(format));
+            _waveProvider.AddMixerInput(new BufferedWaveProvider(format.ToWaveFormat()));
 
             _waveOut = new DirectSoundOut(DirectSoundOut.DSDEVID_DefaultVoicePlayback);
             _waveOut.Init(_waveProvider);
             _waveOut.Play();
         }
 
-        ~AudioPlayer() 
+        ~AudioPlayback() 
         {
             Dispose(false);
         }

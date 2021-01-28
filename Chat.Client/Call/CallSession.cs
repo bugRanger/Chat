@@ -2,24 +2,18 @@
 {
     using System;
 
-    using Chat.Media;
-    using NAudio.Wave;
+    using Audio;
+    using Chat.Audio;
+
+    using Chat.Api.Messages.Call;
 
     class CallSession : IDisposable
     {
-        #region Constants
-
-        private const int BUFFERING_MS = 150;
-
-        #endregion Constants
-
         #region Fields
 
         private readonly IAudioCodec _codec;
         private readonly IAudioController _controller;
-        private readonly AudioBuffer _buffer;
 
-        private uint _sequenceId;
         private bool _disposed;
 
         #endregion Fields
@@ -30,24 +24,22 @@
 
         public int RouteId { get; set; }
 
+        public CallState State { get; private set; }
+
         #endregion Properties
 
         #region Events
 
-        public event Action<IAudioPacket> PacketPrepared;
+        public event Action Closed;
 
         #endregion Events
 
         #region Constructors
 
-        public CallSession(IAudioController controller, Func<WaveFormat, IAudioCodec> codecFactory)
+        public CallSession(IAudioController controller, Func<AudioFormat, IAudioCodec> codecFactory)
         {
-            _codec = codecFactory(controller.Format);
-            _buffer = new AudioBuffer(_codec, BUFFERING_MS);
-
             _controller = controller;
-            _controller.Append(_buffer);
-            _controller.Received += OnAudioReceived;
+            _codec = codecFactory(controller.Format);
         }
 
         ~CallSession()
@@ -59,35 +51,29 @@
 
         #region Methods
 
+        public void RaiseState(CallState state) 
+        {
+            switch (state)
+            {
+                case CallState.Active:
+                case CallState.Created:
+                case CallState.Calling:
+                    _controller.Append(RouteId, _codec);
+                    break;
+
+                case CallState.Idle:
+                    _controller.Remove(RouteId);
+                    Closed?.Invoke();
+                    break;
+            }
+
+            State = state;
+        }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        public void Handle(IAudioPacket packet)
-        {
-            if (packet.SessionId != Id)
-                return;
-
-            _buffer.Enqueue(packet);
-        }
-
-        private void OnAudioReceived(ArraySegment<byte> uncompressed)
-        {
-            // TODO Use enqueue.
-            byte[] compressed = _codec.Encode(uncompressed);
-
-            // TODO Move transport layer.
-            var packet = new AudioPacket
-            {
-                SessionId = Id,
-                RouteId = RouteId,
-                Payload = compressed,
-                SequenceId = ++_sequenceId,
-            };
-
-            PacketPrepared?.Invoke(packet);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -99,10 +85,7 @@
 
             if (disposing)
             {
-                _controller.Received -= OnAudioReceived;
-                _controller.Remove(_buffer);
-
-                _buffer.Dispose();
+                _controller.Remove(RouteId);
                 _codec.Dispose();
             }
 

@@ -1,5 +1,5 @@
-﻿namespace Chat.Media
-{ 
+﻿namespace Chat.Audio
+{
     using System;
 
     public class AudioPacket : IAudioPacket
@@ -7,13 +7,11 @@
         #region Constants
 
         private const int HEADER_LENGTH = 2;
-        private const int PACKET_LENGTH = 12;
+        private const int PACKET_LENGTH = 8;
 
         #endregion Constants
 
         #region Properties
-
-        public int SessionId { get; set; }
 
         /// TODO Impl multiple combine packet.
         public int RouteId { get; set; }
@@ -43,8 +41,6 @@
                 return false;
             }
 
-            SessionId = BitConverter.ToInt32(buffer, tmpOffset);
-            tmpOffset += 4;
             RouteId = BitConverter.ToInt32(buffer, tmpOffset);
             tmpOffset += 4;
             SequenceId = BitConverter.ToUInt32(buffer, tmpOffset);
@@ -66,8 +62,7 @@
 
             BitConverter.TryWriteBytes(span.Slice(offset), buffer.Length);
             offset += 2;
-            BitConverter.TryWriteBytes(span.Slice(offset), SessionId);
-            offset += 4;
+
             BitConverter.TryWriteBytes(span.Slice(offset), RouteId);
             offset += 4;
             BitConverter.TryWriteBytes(span.Slice(offset), SequenceId);

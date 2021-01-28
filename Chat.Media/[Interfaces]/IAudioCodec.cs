@@ -1,15 +1,21 @@
-﻿namespace Chat.Media
+﻿namespace Chat.Audio
 {
     using System;
-
-    using NAudio.Wave;
-
+    
     public interface IAudioCodec : IDisposable
     {
-        WaveFormat Format { get; }
+        #region Properties
+
+        AudioFormat Format { get; }
+
+        #endregion Properties
+
+        #region Methods
 
         byte[] Encode(ArraySegment<byte> uncompressed);
 
         byte[] Decode(ArraySegment<byte> compressed);
+
+        #endregion Methods
     }
 }

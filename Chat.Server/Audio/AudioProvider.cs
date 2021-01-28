@@ -3,7 +3,7 @@
     using System;
     using System.Net;
 
-    using Chat.Media;
+    using Chat.Audio;
 
     public class AudioProvider : IAudioProvider, IDisposable
     {

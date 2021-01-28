@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Collections.Generic;
 
-    using Chat.Media;
+    using Chat.Audio;
     using Chat.Server.Call;
 
     public class BridgeRouter : IAudioRouter

@@ -3,9 +3,7 @@
     using System;
     using System.Net;
     using System.Net.Sockets;
-
-    using NAudio.Wave;
-
+    
     using Chat.Api;
     using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Call;
@@ -15,15 +13,16 @@
     using Chat.Client.Commander;
     using Chat.Client.Commander.Commands;
 
-    using Chat.Media;
-    using Chat.Media.Codecs;
+    using Chat.Audio;
+    using Chat.Audio.Codecs;
     using Chat.Client.Call;
+    using Chat.Client.Audio;
 
     class Program
     {
         #region Properties
 
-        static AudioController AudioController { get; set; }
+        static IAudioController AudioController { get; set; }
 
         static MessageFactory MessageFactory { get; set; }
 
@@ -41,11 +40,13 @@
 
         static void Main(string[] args)
         {
-            AudioController = new AudioController(new WaveFormat(48000, 16, 1));
             MessageFactory = new MessageFactory(true);
 
-            ApiSocket = new EasySocket(ApiReceived, () => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-            CallSocket = new EasySocket(CallReceived, () => new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
+            ApiSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+            ApiSocket.PreparePacket += ApiReceived;
+            CallSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
+
+            AudioController = new AudioProvider(new AudioFormat(48000, 1, 16), CallSocket);
 
             var commandParser = new CommandParser('!')
             {
@@ -102,24 +103,6 @@
 
         #region Sockets
 
-        static void CallReceived(byte[] bytes, ref int offset, int count)
-        {
-            var packet = new AudioPacket();
-
-            while (packet.TryUnpack(bytes, ref offset, count))
-            {
-                if (CallSession == null)
-                    continue;
-
-                CallSession.Handle(packet);
-            }
-        }
-
-        static void Send(IAudioPacket packet) 
-        {
-            CallSocket.Send(packet.Pack());
-        }
-
         static void ApiReceived(byte[] bytes, ref int offset, int count)
         {
             while (MessageFactory.TryUnpack(bytes, ref offset, count, out var message))
@@ -134,10 +117,10 @@
                             CallSessionId = response.SessionId;
                             CallSession = new CallSession(AudioController, format => new PcmCodec(format))
                             {
-                                Id = response.SessionId, 
+                                Id = response.SessionId,
                                 RouteId = response.RouteId,
                             };
-                            CallSession.PacketPrepared += Send;
+                            CallSession.Closed += CloseSession;
                         }
                         break;
 
@@ -151,6 +134,7 @@
                         {
                             CloseSession();
                         }
+                        CallSession?.RaiseState(broadcast.State);
                         break;
 
                     default:
@@ -229,7 +213,7 @@
             if (CallSession == null)
                 return;
 
-            CallSession.PacketPrepared -= Send;
+            CallSession.Closed -= CloseSession;
             CallSession.Dispose();
             CallSession = null;
         }
