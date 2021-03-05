@@ -91,6 +91,7 @@
             {
                 _transport.Received -= OnTransportReceived;
 
+                _buffer.Dispose();
                 _codec.Dispose();
             }
 
