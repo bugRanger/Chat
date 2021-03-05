@@ -1,6 +1,7 @@
-﻿namespace Chat.Tests
+﻿namespace Chat.Tests.Core
 {
     using System;
+
     using NUnit.Framework;
 
     [TestFixture]

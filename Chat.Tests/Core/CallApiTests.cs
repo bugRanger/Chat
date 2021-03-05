@@ -1,4 +1,4 @@
-﻿namespace Chat.Tests
+﻿namespace Chat.Tests.Core
 {
     using System;
     using System.Linq;
@@ -33,10 +33,10 @@
         #region Methods
 
         [Test]
-        public void BridgeRouteTest()
+        public void GetAudio_ActiveCall_SendOnRoutes()
         {
             // Arrange
-            InviteCallingTest();
+            CallInvite_CallingState_InActive();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
             _coreTests.Authorization.TryGet("User2", out var user2);
@@ -72,10 +72,10 @@
         }
 
         [Test]
-        public void DisconnectUserTest()
+        public void Disconnect_ActiveCall_InIdle()
         {
             // Arrange
-            InviteCallingTest();
+            CallInvite_CallingState_InActive();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
 
@@ -96,10 +96,10 @@
         }
 
         [Test]
-        public void CancelCallingTest()
+        public void CallCancel_ActiveState_InIdle()
         {
             // Arrange
-            InviteCallingTest();
+            CallInvite_CallingState_InActive();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
 
@@ -120,10 +120,10 @@
         }
 
         [Test]
-        public void RejectCallingTest()
+        public void CallReject_CallingState_InIdle()
         {
             // Arrange
-            InitCallingTest();
+            CallInit_Correct_InCalling();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
 
@@ -143,7 +143,7 @@
         }
 
         [Test]
-        public void InviteCallingNotFoundTest()
+        public void CallInvite_NotExistsCall_Rejected()
         {
             // Arrange
             _coreTests.AuthorizationTest();
@@ -159,7 +159,7 @@
         }
 
         [Test]
-        public void InviteCallingNotLogginTest()
+        public void CallInvite_NotLoggin_Rejected()
         {
             // Arrange
             _coreTests.ConnectionTest();
@@ -175,10 +175,10 @@
         }
 
         [Test]
-        public void InviteCallingOutRangeRouteIdTest()
+        public void CallInvite_OutRangeRouteId_Rejected()
         {
             // Arrange
-            InitCallingTest();
+            CallInit_Correct_InCalling();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
             _coreTests.Authorization.TryGet("User2", out var user2);
@@ -194,10 +194,10 @@
         }
 
         [Test]
-        public void InviteCallingWithZeroRouteIdTest()
+        public void CallInvite_WithZeroRouteId_Rejected()
         {
             // Arrange
-            InitCallingTest();
+            CallInit_Correct_InCalling();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
             _coreTests.Authorization.TryGet("User2", out var user2);
@@ -213,10 +213,10 @@
         }
 
         [Test]
-        public void InviteCallingTest()
+        public void CallInvite_CallingState_InActive()
         {
             // Arrange
-            InitCallingTest();
+            CallInit_Correct_InCalling();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
             _coreTests.Authorization.TryGet("User2", out var user2);
@@ -250,7 +250,7 @@
         }
 
         [Test]
-        public void InitCallingNotLogginTest()
+        public void CallInit_NotLoggin_Rejected()
         {
             // Arrange
             _coreTests.ConnectionTest();
@@ -266,10 +266,10 @@
         }
 
         [Test]
-        public void DuplicateInitCallingTest()
+        public void CallInit_Duplicate_Rejected()
         {
             // Arrange
-            InitCallingTest();
+            CallInit_Correct_InCalling();
 
             _coreTests.Authorization.TryGet("User1", out var user1);
             var expectedId = -1951180698;
@@ -291,7 +291,7 @@
         }
 
         [Test]
-        public void InitCallingWithInvalidParametersTest()
+        public void CallInit_WithInvalidParameters_Rejected()
         {
             // Arrange
             _coreTests.AuthorizationTest();
@@ -311,7 +311,7 @@
         }
 
         [Test]
-        public void InitCallingNotExistsTargetTest()
+        public void CallInit_NotExistsTarget_Rejected()
         {
             // Arrange
             _coreTests.AuthorizationTest();
@@ -327,7 +327,7 @@
         }
 
         [Test]
-        public void InitCallingSelfTest()
+        public void CallInit_TargetIsMe_Rejected()
         {
             // Arrange
             _coreTests.AuthorizationTest();
@@ -343,7 +343,7 @@
         }
 
         [Test]
-        public void InitCallingTest()
+        public void CallInit_Correct_InCalling()
         {
             // Arrange
             _coreTests.AuthorizationTest();

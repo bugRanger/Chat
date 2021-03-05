@@ -1,4 +1,4 @@
-﻿namespace Chat.Tests
+﻿namespace Chat.Tests.Core
 {
     using System;
     using System.Net;
@@ -16,7 +16,6 @@
     using Chat.Server.Auth;
     using Chat.Server.Call;
     using Chat.Server.Audio;
-    using System.ComponentModel;
 
     [TestFixture]
     public class CoreApiTests
@@ -41,7 +40,7 @@
         #region Constructors
 
         [SetUp]
-        public void SetUp() 
+        public void SetUp()
         {
             ActualEvent = new List<TestEvent>();
             ExpectedEvent = new List<TestEvent>();
@@ -186,7 +185,7 @@
             var users = string.Join(",", Remotes.Select((s, i) => $"\"User{i + 1}\""));
             ConnectionTest();
 
-            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\""+ $"User{Remotes.Count}" + "\"}}");
+            var request = MessageFactory.Pack("{\"Id\":1,\"Type\":\"login\",\"Payload\":{\"User\":\"" + $"User{Remotes.Count}" + "\"}}");
             ExpectedEvent.Add(new TestEvent(Remotes[^1], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
             ExpectedEvent.Add(new TestEvent(Remotes[^1], MessageFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[" + users + "]}}")));
             foreach (var remote in remotes)
@@ -220,7 +219,7 @@
         }
 
         [Test]
-        public void ConnectionTest() 
+        public void ConnectionTest()
         {
             // Arrange
             Remotes.Add(new IPEndPoint(IPAddress.Parse($"127.0.0.{Remotes.Count + 1}"), 5000));

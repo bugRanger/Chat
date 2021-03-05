@@ -1,4 +1,4 @@
-namespace Chat.Tests
+namespace Chat.Tests.Api
 {
     using System;
     using System.Text;
@@ -23,7 +23,7 @@ namespace Chat.Tests
 
         #region Fields
 
-        private static TestCaseData[] Messages =
+        private static TestCaseData[] CorrectMessages =
         {
             new TestCaseData("login", "\"User\":\"User1\"", new LoginRequest { User = "User1" }),
             new TestCaseData("logout", "", new LogoutRequest()),
@@ -63,8 +63,8 @@ namespace Chat.Tests
 
         // TODO Add negative tests.
 
-        [TestCaseSource(nameof(Messages))]
-        public void PackTests(string type, string payload, IMessage message)
+        [TestCaseSource(nameof(CorrectMessages))]
+        public void Pack_Correct_Success(string type, string payload, IMessage message)
         {
             // Arrange
             _message = message;
@@ -84,8 +84,8 @@ namespace Chat.Tests
             CollectionAssert.AreEqual(expected, _packetBytes);
         }
 
-        [TestCaseSource(nameof(Messages))]
-        public void UnpackTests(string type, string payload, IMessage message)
+        [TestCaseSource(nameof(CorrectMessages))]
+        public void Unpack_Correct_Success(string type, string payload, IMessage message)
         {
             // Arrange
             var offset = 0;
@@ -95,7 +95,7 @@ namespace Chat.Tests
                 + Encoding.UTF8.GetBytes(type).Length
                 + Encoding.UTF8.GetBytes(payload).Length;
 
-            PackTests(type, payload, message);
+            Pack_Correct_Success(type, payload, message);
 
             // Act
             var result = messageFactory.TryUnpack(_packetBytes, ref offset, _packetBytes.Length, out var request);
@@ -109,7 +109,7 @@ namespace Chat.Tests
         }
 
         [Test]
-        public void UnpackWithOffsetTests()
+        public void Unpack_WithOffset_Success()
         {
             // Arrange
             var offset = 0;
@@ -149,8 +149,8 @@ namespace Chat.Tests
             Assert.AreEqual(null, requestNulleble);
         }
 
-        [TestCaseSource(nameof(Messages))]
-        public void PackWithoutHeaderTests(string type, string payload, IMessage message)
+        [TestCaseSource(nameof(CorrectMessages))]
+        public void Pack_WithoutHeader_Success(string type, string payload, IMessage message)
         {
             // Arrange
             _message = message;
@@ -166,8 +166,8 @@ namespace Chat.Tests
             CollectionAssert.AreEqual(expected, _packetBytes);
         }
 
-        [TestCaseSource(nameof(Messages))]
-        public void UnpackWithoutHeaderTests(string type, string payload, IMessage message)
+        [TestCaseSource(nameof(CorrectMessages))]
+        public void Unpack_WithoutHeader_Success(string type, string payload, IMessage message)
         {
             // Arrange
             var offset = 0;
@@ -176,7 +176,7 @@ namespace Chat.Tests
                 + Encoding.UTF8.GetBytes(type).Length
                 + Encoding.UTF8.GetBytes(payload).Length;
 
-            PackWithoutHeaderTests(type, payload, message);
+            Pack_WithoutHeader_Success(type, payload, message);
 
             // Act
             var result = messageFactory.TryUnpack(_packetBytes, ref offset, _packetBytes.Length, out var request);
