@@ -10,3 +10,5 @@ Chat.Tests/obj/
 /Chat.Media/bin/Debug/netcoreapp3.1
 /Chat.Client/obj
 /Chat.Client/bin/Debug/netcoreapp3.1
+/.idea/.idea.Chat/.idea
+/Chat.sln.DotSettings.user
