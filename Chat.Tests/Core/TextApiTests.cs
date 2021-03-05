@@ -92,6 +92,23 @@
         }
 
         [Test]
+        public void Send_TargetIsMe_Success()
+        {
+            // Arrange
+            _coreTests.AuthorizationTest();
+
+            var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"message\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User1\",\"Message\":\"Hi!\"}}");
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":0,\"Type\":\"message\",\"Payload\":{\"Source\":\"User1\",\"Target\":\"User1\",\"Message\":\"Hi!\"}}")));
+
+            // Act
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+
+            // Assert
+            CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
+        }
+
+        [Test]
         public void Send_SourceIsEmpty_Success()
         {
             // Arrange
