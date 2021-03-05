@@ -42,9 +42,9 @@
         {
             MessageFactory = new MessageFactory(true);
 
+            CallSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
             ApiSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
             ApiSocket.PreparePacket += ApiReceived;
-            CallSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
 
             AudioController = new AudioProvider(new AudioFormat(48000, 1, 16), CallSocket);
 
