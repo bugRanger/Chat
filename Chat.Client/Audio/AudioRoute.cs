@@ -6,7 +6,7 @@
 
     using NAudio.Wave;
 
-    public class AudioRoute : IAudioRoute, IDisposable
+    public class AudioRoute : IAudioStream, IDisposable
     {
         #region Fields
 
@@ -33,7 +33,6 @@
         {
             _codec = codec;
             _transport = transport;
-            _transport.Received += OnTransportReceived;
 
             _buffer = new AudioBuffer(codec);
 
@@ -43,6 +42,11 @@
         #endregion Constructors
 
         #region Methods
+
+        public void Handle(IAudioPacket packet)
+        {
+            _buffer.Enqueue(packet);
+        }
 
         public void Write(ArraySegment<byte> bytes)
         {
@@ -70,16 +74,6 @@
             GC.SuppressFinalize(this);
         }
 
-        protected void OnTransportReceived(IAudioPacket packet)
-        {
-            if (packet.RouteId != packet.RouteId)
-            {
-                return;
-            }
-
-            _buffer.Enqueue(packet);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
@@ -89,8 +83,6 @@
 
             if (disposing)
             {
-                _transport.Received -= OnTransportReceived;
-
                 _buffer.Dispose();
                 _codec.Dispose();
             }

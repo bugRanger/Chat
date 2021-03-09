@@ -1,13 +1,15 @@
 ﻿namespace Chat.Audio
 {
     using System;
-
+    using System.Collections.Generic;
+    using System.Linq;
     using NAudio.Wave;
 
-    public class AudioCapture : IDisposable
+    public class AudioCapture : IAudioConsumer, IDisposable
     {
         #region Fields
 
+        private readonly HashSet<IAudioStream> _streams;
         private readonly IWaveIn _waveIn;
         private bool _disposed;
 
@@ -23,6 +25,7 @@
 
         public AudioCapture(AudioFormat format)
         {
+            _streams = new HashSet<IAudioStream>();
             _waveIn = new WaveInEvent()
             {
                 WaveFormat = format.ToWaveFormat(),
@@ -41,6 +44,21 @@
         #endregion Constructors
 
         #region Methods
+        public void Append(IAudioStream stream)
+        {
+            if (_streams.Add(stream))
+            {
+                Received += stream.Write;
+            }
+        }
+
+        public void Remove(IAudioStream stream)
+        {
+            if (_streams.Remove(stream))
+            {
+                Received -= stream.Write;
+            }
+        }
 
         public void Dispose()
         {
@@ -65,6 +83,11 @@
                 _waveIn.DataAvailable -= OnAudioCaptured;
                 _waveIn.StopRecording();
                 _waveIn.Dispose();
+
+                foreach (var provider in _streams.ToArray())
+                {
+                    Remove(provider);
+                }
             }
 
             _disposed = true;

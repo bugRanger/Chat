@@ -7,24 +7,18 @@
     using Chat.Audio;
     using Chat.Client.Network;
 
-    public class AudioProvider : IAudioController, IAudioTransport, IDisposable
+    public class AudioController : IAudioController, IAudioTransport, IDisposable
     {
         #region Fields
 
+        private readonly Func<AudioFormat, IAudioCodec> _codecFactory;
         private readonly Dictionary<int, AudioRoute> _routes;
-        private readonly AudioPlayback _playback;
-        private readonly AudioCapture _capture;
+        private readonly List<IAudioConsumer> _consumers;
         private readonly INetworkStream _transport;
 
         private bool _disposed;
 
         #endregion Fields
-
-        #region Events
-
-        public event Action<IAudioPacket> Received;
-
-        #endregion Events
 
         #region Properties
 
@@ -34,20 +28,20 @@
 
         #region Constructors
 
-        public AudioProvider(AudioFormat format, INetworkStream transport)
+        public AudioController(AudioFormat format, INetworkStream transport, Func<AudioFormat, IAudioCodec> codecFactory)
         {
             Format = format;
+
+            _codecFactory = codecFactory;
 
             _transport = transport;
             _transport.PreparePacket += OnTransportReceived;
 
             _routes = new Dictionary<int, AudioRoute>();
-            _playback = new AudioPlayback(Format);
-            _capture = new AudioCapture(Format);
-            _capture.Received += OnCaptureReceived;
+            _consumers = new List<IAudioConsumer>();
         }
 
-        ~AudioProvider()
+        ~AudioController()
         {
             Dispose(false);
         }
@@ -56,24 +50,31 @@
 
         #region Methods
 
-        public void Dispose()
+        public void Registration(Func<AudioFormat, IAudioConsumer> makeConsumer)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            _consumers.Add(makeConsumer(Format));
         }
 
-        public void Append(int routeId, IAudioCodec codec) 
+        public void Append(int routeId) 
         {
             if (_routes.ContainsKey(routeId))
             {
                 return;
             }
 
-            var route = new AudioRoute(codec, this) { Id = routeId };
-            _routes[routeId] = route;
-            _playback.Append(route);
-        }
+            var codec = _codecFactory(Format);
+            var route = new AudioRoute(codec, this) 
+            { 
+                Id = routeId 
+            };
 
+            _routes[routeId] = route;
+
+            foreach (IAudioConsumer consumer in _consumers)
+            {
+                consumer.Append(route);
+            }
+        }
         public void Remove(int routeId)
         {
             if (!_routes.Remove(routeId, out var route))
@@ -83,7 +84,10 @@
 
             try
             {
-                _playback.Remove(route);
+                foreach (IAudioConsumer consumer in _consumers)
+                {
+                    consumer.Remove(route);
+                }
             }
             finally
             {
@@ -96,21 +100,24 @@
             _transport.Send(packet.Pack());
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         private void OnTransportReceived(byte[] bytes, ref int offset, int count)
         {
             var packet = new AudioPacket();
 
             while (packet.TryUnpack(bytes, ref offset, count))
             {
-                Received?.Invoke(packet);
-            }
-        }
+                if (!_routes.TryGetValue(packet.RouteId, out AudioRoute route)) 
+                {
+                    continue;
+                }
 
-        private void OnCaptureReceived(ArraySegment<byte> bytes)
-        {
-            foreach (var route in _routes.Values)
-            {
-                route.Write(bytes);
+                route.Handle(packet);
             }
         }
 
@@ -123,9 +130,14 @@
 
             if (disposing)
             {
-                _capture.Received -= OnCaptureReceived;
-                _capture.Dispose();
-                _playback.Dispose();
+                _transport.PreparePacket -= OnTransportReceived;
+
+                for (int i = _routes.Count - 1; i >= 0; i--)
+                {
+                    Remove(_routes[i].Id);
+                }
+
+                _consumers.Clear();
             }
 
             _disposed = true;

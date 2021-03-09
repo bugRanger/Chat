@@ -6,12 +6,6 @@
 
     public interface IAudioTransport
     {
-        #region Events
-
-        event Action<IAudioPacket> Received;
-
-        #endregion Events
-
         #region Methods
 
         void Send(IAudioPacket packet);

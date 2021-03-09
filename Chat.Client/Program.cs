@@ -22,7 +22,7 @@
     {
         #region Properties
 
-        static IAudioController AudioController { get; set; }
+        static AudioController AudioController { get; set; }
 
         static MessageFactory MessageFactory { get; set; }
 
@@ -46,7 +46,9 @@
             ApiSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
             ApiSocket.PreparePacket += ApiReceived;
 
-            AudioController = new AudioProvider(new AudioFormat(48000, 1, 16), CallSocket);
+            AudioController = new AudioController(new AudioFormat(48000, 1, 16), CallSocket, format => new PcmCodec(format));
+            AudioController.Registration(format => new AudioPlayback(format));
+            AudioController.Registration(format => new AudioCapture(format));
 
             var commandParser = new CommandParser('!')
             {
@@ -115,12 +117,12 @@
                         if (CallSession == null)
                         {
                             CallSessionId = response.SessionId;
-                            CallSession = new CallSession(AudioController, format => new PcmCodec(format))
+                            CallSession = new CallSession(AudioController)
                             {
                                 Id = response.SessionId,
                                 RouteId = response.RouteId,
                             };
-                            CallSession.Closed += CloseSession;
+                            CallSession.ChangeState += ChangeState;
                         }
                         break;
 
@@ -129,10 +131,6 @@
                         {
                             CallSessionId = broadcast.SessionId;
                             Send(new CallInviteRequest { SessionId = broadcast.SessionId, RoutePort = CallSocket.Local.Port });
-                        }
-                        else if (broadcast.State == CallState.Idle)
-                        {
-                            CloseSession();
                         }
                         CallSession?.RaiseState(broadcast.State);
                         break;
@@ -204,16 +202,16 @@
 
         static void CallHangUpHandle(HangUpCommand command)
         {
-            CloseSession();
+            CallSession?.Dispose();
             Send(new CallCancelRequest { SessionId = CallSessionId/*command.SessionId*/ });
         }
 
-        static void CloseSession()
+        static void ChangeState(CallState state)
         {
-            if (CallSession == null)
+            if (state != CallState.Idle || CallSession == null)
                 return;
 
-            CallSession.Closed -= CloseSession;
+            CallSession.ChangeState -= ChangeState;
             CallSession.Dispose();
             CallSession = null;
         }

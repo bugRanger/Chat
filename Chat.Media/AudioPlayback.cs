@@ -5,7 +5,7 @@
     using NAudio.Wave;
     using NAudio.Wave.SampleProviders;
 
-    public class AudioPlayback : IDisposable
+    public class AudioPlayback : IAudioConsumer, IDisposable
     {
         #region Fields
 
@@ -42,14 +42,14 @@
             GC.SuppressFinalize(this);
         }
 
-        public void Append(ISampleProvider provider)
+        public void Append(IAudioStream stream)
         {
-            _waveProvider.AddMixerInput(provider);
+            _waveProvider.AddMixerInput(stream);
         }
 
-        public void Remove(ISampleProvider provider)
+        public void Remove(IAudioStream stream)
         {
-            _waveProvider.RemoveMixerInput(provider);
+            _waveProvider.RemoveMixerInput(stream);
         }
 
         protected virtual void Dispose(bool disposing)

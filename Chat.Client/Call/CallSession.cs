@@ -3,7 +3,6 @@
     using System;
 
     using Audio;
-    using Chat.Audio;
 
     using Chat.Api.Messages.Call;
 
@@ -11,7 +10,6 @@
     {
         #region Fields
 
-        private readonly IAudioCodec _codec;
         private readonly IAudioController _controller;
 
         private bool _disposed;
@@ -30,16 +28,15 @@
 
         #region Events
 
-        public event Action Closed;
+        public event Action<CallState> ChangeState;
 
         #endregion Events
 
         #region Constructors
 
-        public CallSession(IAudioController controller, Func<AudioFormat, IAudioCodec> codecFactory)
+        public CallSession(IAudioController controller)
         {
             _controller = controller;
-            _codec = codecFactory(controller.Format);
         }
 
         ~CallSession()
@@ -58,16 +55,17 @@
                 case CallState.Active:
                 case CallState.Created:
                 case CallState.Calling:
-                    _controller.Append(RouteId, _codec);
+                    _controller.Append(RouteId);
                     break;
 
                 case CallState.Idle:
                     _controller.Remove(RouteId);
-                    Closed?.Invoke();
                     break;
             }
 
             State = state;
+
+            ChangeState?.Invoke(state);
         }
 
         public void Dispose()
@@ -85,8 +83,7 @@
 
             if (disposing)
             {
-                _controller.Remove(RouteId);
-                _codec.Dispose();
+                RaiseState(CallState.Idle);
             }
 
             _disposed = true;

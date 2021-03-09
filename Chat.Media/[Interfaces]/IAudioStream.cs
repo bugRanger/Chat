@@ -1,10 +1,10 @@
-﻿namespace Chat.Client.Audio
+﻿namespace Chat.Audio
 {
     using System;
 
     using NAudio.Wave;
 
-    public interface IAudioRoute : ISampleProvider
+    public interface IAudioStream : ISampleProvider
     {
         #region Methods
 
