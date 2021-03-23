@@ -29,7 +29,7 @@
             _waveIn = new WaveInEvent()
             {
                 WaveFormat = format.ToWaveFormat(),
-                BufferMilliseconds = 100,
+                BufferMilliseconds = format.Duration,
                 NumberOfBuffers = 2,
             };
             _waveIn.DataAvailable += OnAudioCaptured;
