@@ -75,6 +75,7 @@
                 consumer.Append(route);
             }
         }
+
         public void Remove(int routeId)
         {
             if (!_routes.Remove(routeId, out var route))
@@ -112,10 +113,12 @@
 
             while (packet.TryUnpack(bytes, ref offset, count))
             {
-                if (!_routes.TryGetValue(packet.RouteId, out AudioRoute route)) 
-                {
-                    continue;
-                }
+                // TODO swap route id => to call id?
+                var route = _routes.Values.FirstOrDefault();
+                //if (!_routes.TryGetValue(packet.RouteId, out AudioRoute route))
+                //{
+                //    continue;
+                //}
 
                 route.Handle(packet);
             }

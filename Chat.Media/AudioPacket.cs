@@ -7,7 +7,7 @@
         #region Constants
 
         private const int HEADER_LENGTH = 2;
-        private const int PACKET_LENGTH = 8;
+        private const int PACKET_LENGTH = 9;
 
         #endregion Constants
 
@@ -15,6 +15,8 @@
 
         /// TODO Impl multiple combine packet.
         public int RouteId { get; set; }
+
+        public bool Mark { get; set; }
 
         public uint SequenceId { get; set; }
 
@@ -43,6 +45,8 @@
 
             RouteId = BitConverter.ToInt32(buffer, tmpOffset);
             tmpOffset += 4;
+            Mark = BitConverter.ToBoolean(buffer, tmpOffset);
+            tmpOffset += 1;
             SequenceId = BitConverter.ToUInt32(buffer, tmpOffset);
             tmpOffset += 4;
 
@@ -65,6 +69,8 @@
 
             BitConverter.TryWriteBytes(span.Slice(offset), RouteId);
             offset += 4;
+            BitConverter.TryWriteBytes(span.Slice(offset), Mark);
+            offset += 1;
             BitConverter.TryWriteBytes(span.Slice(offset), SequenceId);
             offset += 4;
 

@@ -1,7 +1,7 @@
 ﻿namespace Chat.Audio
 {
     using System;
-
+    
     public interface IAudioPacket
     {
         #region Properties
@@ -9,6 +9,8 @@
         //int SessionId { get; }
 
         int RouteId { get; }
+
+        bool Mark { get; }
 
         uint SequenceId { get; }
 
