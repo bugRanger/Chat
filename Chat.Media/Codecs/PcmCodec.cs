@@ -32,6 +32,12 @@
             return uncompressed.ToArray();
         }
 
+        public byte[] Restore(ArraySegment<byte> compressed)
+        {
+            // TODO: Impl PLC.
+            return new byte[Format.GetSamples()];
+        }
+
         public void Dispose()
         {
             // Ignore.

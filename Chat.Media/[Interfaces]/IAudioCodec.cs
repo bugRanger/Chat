@@ -16,6 +16,8 @@
 
         byte[] Decode(ArraySegment<byte> compressed);
 
+        byte[] Restore(ArraySegment<byte> compressed);
+
         #endregion Methods
     }
 }
