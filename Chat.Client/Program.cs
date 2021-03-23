@@ -46,7 +46,7 @@
             ApiSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
             ApiSocket.PreparePacket += ApiReceived;
 
-            AudioController = new AudioController(new AudioFormat(48000, 1, 16), CallSocket, format => new PcmCodec(format));
+            AudioController = new AudioController(new AudioFormat(), CallSocket, format => new PcmCodec(format));
             AudioController.Registration(format => new AudioPlayback(format));
             AudioController.Registration(format => new AudioCapture(format));
 

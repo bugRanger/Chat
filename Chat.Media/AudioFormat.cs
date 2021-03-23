@@ -4,25 +4,37 @@
 
     using NAudio.Wave;
 
-    public class AudioFormat 
+    public class AudioFormat
     {
+        #region Constants
+
+        private const int DEFAULT_SAMPLERATE = 48000;
+        private const int DEFAULT_BIT_DETPTH = 16;
+        private const int DEFAULT_DURATION = 20;
+        private const int DEFAULT_CHANNELS = 1;
+
+        #endregion Constants
+
         #region Properties
 
-        public int SampleRate { get; }
+        public int SampleRate { get; set; }
 
-        public int Channels { get; }
+        public ushort Duration { get; set; }
 
-        public int BitsPerSample { get; }
+        public int BitDepth { get; set; }
+
+        public int Channels { get; set; }
 
         #endregion Properties
 
         #region Constructor
 
-        public AudioFormat(int rate, int channels = 1, int bits = 16) 
+        public AudioFormat() 
         {
-            SampleRate = rate;
-            Channels = channels;
-            BitsPerSample = bits;
+            SampleRate = DEFAULT_SAMPLERATE;
+            BitDepth = DEFAULT_BIT_DETPTH;
+            Duration = DEFAULT_DURATION;
+            Channels = DEFAULT_CHANNELS;
         }
 
         #endregion Constructor
@@ -31,7 +43,12 @@
 
         public WaveFormat ToWaveFormat() 
         {
-            return new WaveFormat(SampleRate, BitsPerSample, Channels);
+            return new WaveFormat(SampleRate, BitDepth, Channels);
+        }
+
+        public int GetSamples() 
+        {
+            return SampleRate / 1000 * Duration;
         }
 
         #endregion Methods
