@@ -13,11 +13,11 @@
 
         #region Methods
 
-        int Append(IPEndPoint route);
+        void Append(IPEndPoint route);
 
         void Remove(IPEndPoint route);
 
-        bool TryGet(IPEndPoint route, out int routeId);
+        bool Contains(IPEndPoint route);
 
         #endregion Methods
     }

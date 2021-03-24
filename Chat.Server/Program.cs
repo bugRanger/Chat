@@ -30,7 +30,7 @@
 
             // TODO Impl udp transport layer.
             var provider = new AudioProvider(udpProvider);
-            var calls = new CallController((container) => new BridgeRouter(container, provider));
+            var calls = new CallController(new KeyContainer(), () => new BridgeRouter(provider));
             var authorization = new AuthorizationController();
 
             var core = new CoreApi(tcpProvider, new MessageFactory(true));

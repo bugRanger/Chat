@@ -42,9 +42,7 @@
             _coreTests.Authorization.TryGet("User2", out var user2);
 
             var route1 = new IPEndPoint(user1.Remote.Address, 8888);
-            var route2 = new IPEndPoint(user2.Remote.Address, 7777);
-
-            var packetRoute1 = new AudioPacket
+            var sended1 = new AudioPacket
             {
                 RouteId = 1,
                 SequenceId = 100,
@@ -52,20 +50,24 @@
             }
             .Pack();
 
-            var packetRoute2 = new AudioPacket
+            var route2 = new IPEndPoint(user2.Remote.Address, 7777);
+            var sended2 = new AudioPacket
             {
-                RouteId = 2,
+                RouteId = 1,
                 SequenceId = 200,
                 Payload = new byte[] { 2 },
             }
             .Pack();
 
-            _coreTests.ExpectedEvent.Add(new TestEvent(route2, new AudioPacket { RouteId = 1, SequenceId = 100, Payload = new byte[] { 1 }, }.Pack()));
-            _coreTests.ExpectedEvent.Add(new TestEvent(route1, new AudioPacket { RouteId = 2, SequenceId = 200, Payload = new byte[] { 2 }, }.Pack()));
+            var received2 = sended1;
+            var received1 = sended2;
+
+            _coreTests.ExpectedEvent.Add(new TestEvent(route2, received2));
+            _coreTests.ExpectedEvent.Add(new TestEvent(route1, received1));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route1, packetRoute1.Array, packetRoute1.Offset, packetRoute1.Count);
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route2, packetRoute2.Array, packetRoute2.Offset, packetRoute2.Count);
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route1, sended1.Array, sended1.Offset, sended1.Count);
+            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route2, sended2.Array, sended2.Offset, sended2.Count);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -90,7 +92,6 @@
             Assert.AreEqual(false, _coreTests.Authorization.TryGet(_coreTests.Remotes[^1], out _));
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
             Assert.AreEqual(0, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Container.HasReleased(2));
             Assert.AreEqual(true, _coreTests.Container.HasReleased(1));
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
@@ -114,7 +115,6 @@
             // Assert
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
             Assert.AreEqual(0, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Container.HasReleased(2));
             Assert.AreEqual(true, _coreTests.Container.HasReleased(1));
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
         }
@@ -224,7 +224,7 @@
             var expectedId = -1951180698;
             var request = _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-invite\",\"Payload\":{\"SessionId\":-1951180698,\"RoutePort\":7777}}");
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Success\",\"Reason\":\"\"}}")));
-            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-response\",\"Payload\":{\"SessionId\":-1951180698,\"RouteId\":2}}")));
+            _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"call-response\",\"Payload\":{\"SessionId\":-1951180698,\"RouteId\":1}}")));
 
             foreach (var remote in _coreTests.Remotes)
             {
@@ -240,10 +240,8 @@
             Assert.AreEqual(true, session.Contains(user2));
             Assert.AreEqual(2, session.GetParticipants().Count());
             Assert.AreEqual(2, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user1.Remote.Address, 8888), out int routeId));
-            Assert.AreEqual(1, routeId);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user2.Remote.Address, 7777), out routeId));
-            Assert.AreEqual(2, routeId);
+            Assert.AreEqual(true, _coreTests.Routers[^1].Contains(new IPEndPoint(user1.Remote.Address, 8888)));
+            Assert.AreEqual(true, _coreTests.Routers[^1].Contains(new IPEndPoint(user2.Remote.Address, 7777)));
             Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Active, session.State);
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -283,8 +281,7 @@
             Assert.AreEqual(true, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
             Assert.AreEqual(2, session.GetParticipants().Count());
             Assert.AreEqual(1, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user1.Remote.Address, 8888), out int routeId));
-            Assert.AreEqual(1, routeId);
+            Assert.AreEqual(true, _coreTests.Routers[^1].Contains(new IPEndPoint(user1.Remote.Address, 8888)));
             Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Calling, session.State);
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -368,8 +365,8 @@
             Assert.AreEqual(true, session.Contains(user2));
             Assert.AreEqual(2, session.GetParticipants().Count());
             Assert.AreEqual(1, _coreTests.Routers[^1].Count);
-            Assert.AreEqual(true, _coreTests.Routers[^1].TryGet(new IPEndPoint(user1.Remote.Address, 8888), out int routeId));
-            Assert.AreEqual(1, routeId);
+            Assert.AreEqual(false, _coreTests.Container.HasReleased(1));
+            Assert.AreEqual(true, _coreTests.Routers[^1].Contains(new IPEndPoint(user1.Remote.Address, 8888)));
             Assert.AreEqual(expectedId, session.Id);
             Assert.AreEqual(CallState.Calling, session.State);
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);

@@ -64,11 +64,11 @@
                 });
 
             MessageFactory = new MessageFactory(true);
+            Container = new KeyContainer();
             Core = new CoreApi(NetworkMoq.Object, MessageFactory);
-            Calls = new CallController((container) =>
+            Calls = new CallController(Container, () =>
             {
-                Container ??= container;
-                Routers.Add(new BridgeRouter(container, new AudioProvider(NetworkMoq.Object)));
+                Routers.Add(new BridgeRouter(new AudioProvider(NetworkMoq.Object)));
                 return Routers[^1];
             });
             Authorization = new AuthorizationController();

@@ -107,10 +107,10 @@
                 return;
             }
 
-            var routeId = session.AppendOrUpdate(source, request.RoutePort);
+            session.AppendOrUpdate(source, request.RoutePort);
             session.AppendOrUpdate(target);
 
-            _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
+            _core.Send(new CallResponse { SessionId = session.Id, RouteId = session.RouteId }, remote, index);
 
             session.RaiseState();
         }
@@ -150,8 +150,8 @@
                 return;
             }
 
-            var routeId = session.AppendOrUpdate(source, request.RoutePort);
-            _core.Send(new CallResponse { SessionId = session.Id, RouteId = routeId }, remote, index);
+            session.AppendOrUpdate(source, request.RoutePort);
+            _core.Send(new CallResponse { SessionId = session.Id, RouteId = session.RouteId }, remote, index);
 
             session.RaiseState();
         }

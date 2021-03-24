@@ -15,7 +15,7 @@
     {
         #region Fields
 
-        private readonly Func<KeyContainer, IAudioRouter> _routerFactory;
+        private readonly Func<IAudioRouter> _routerFactory;
         private readonly ConcurrentDictionary<int, ICallSession> _sessions;
         private readonly KeyContainer _container;
 
@@ -29,11 +29,11 @@
 
         #region Constructors
 
-        public CallController(Func<KeyContainer, IAudioRouter> routerFactory)
+        public CallController(KeyContainer container, Func<IAudioRouter> routerFactory)
         {
             _routerFactory = routerFactory;
+            _container = container;
 
-            _container = new KeyContainer();
             _sessions = new ConcurrentDictionary<int, ICallSession>();
         }
 
@@ -51,11 +51,12 @@
                 return false;
             }
 
-            var router = _routerFactory(_container);
+            var router = _routerFactory();
 
             session = new CallSession(router)
             {
                 Id = sessionId,
+                RouteId = _container.Take(),
             };
             session.Notify += OnSessionNotify;
 
@@ -102,10 +103,16 @@
             switch (session.State)
             {
                 case CallState.Idle:
-                    _sessions.TryRemove(session.Id, out _);
-
                     session.Notify -= OnSessionNotify;
-                    session.Dispose();
+                    try
+                    {
+                        _sessions.TryRemove(session.Id, out _);
+                        _container.Release(session.RouteId);
+                    }
+                    finally
+                    {
+                        session.Dispose();
+                    }
                     break;
 
                 default:

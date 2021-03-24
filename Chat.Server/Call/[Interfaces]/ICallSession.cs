@@ -13,6 +13,8 @@
 
         int Id { get; }
 
+        int RouteId { get; }
+
         CallState State { get; }
 
         #endregion Properties
@@ -25,7 +27,7 @@
 
         #region Methods
 
-        int AppendOrUpdate(IUser user, int port = 0);
+        void AppendOrUpdate(IUser user, int port = 0);
 
         void Remove(IUser user);
 

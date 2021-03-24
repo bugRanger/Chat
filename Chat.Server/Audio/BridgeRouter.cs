@@ -6,16 +6,16 @@
     using System.Collections.Generic;
 
     using Chat.Audio;
-    using Chat.Server.Call;
 
     public class BridgeRouter : IAudioRouter
     {
         #region Fields
 
         private readonly object _locker;
-        private readonly KeyContainer _container;
         private readonly IAudioProvider _provider;
-        private readonly Dictionary<IPEndPoint, int> _routes;
+        private readonly HashSet<IPEndPoint> _routes;
+
+        private bool _disposed;
 
         #endregion Fields
 
@@ -27,12 +27,11 @@
 
         #region Constructors
 
-        public BridgeRouter(KeyContainer container, IAudioProvider provider) 
+        public BridgeRouter(IAudioProvider provider) 
         {
             _locker = new object();
-            _routes = new Dictionary<IPEndPoint, int>();
+            _routes = new HashSet<IPEndPoint>();
 
-            _container = container;
             _provider = provider;
             _provider.Received += OnProviderReceived;
         }
@@ -41,17 +40,11 @@
 
         #region Methods
 
-        public int Append(IPEndPoint route)
+        public void Append(IPEndPoint route)
         {
             lock (_locker)
             {
-                if (!_routes.TryGetValue(route, out int routeId))
-                {
-                    routeId = _container.Take();
-                    _routes[route] = routeId;
-                }
-
-                return routeId;
+                _routes.Add(route);
             }
         }
 
@@ -59,48 +52,52 @@
         {
             lock (_locker)
             {
-                if (!_routes.Remove(route, out int routeId))
-                {
-                    return;
-                }
-                
-                _container.Release(routeId);
+                _routes.Remove(route);
             }
         }
 
-        public bool TryGet(IPEndPoint route, out int routeId)
+        public bool Contains(IPEndPoint route)
         {
-            return _routes.TryGetValue(route, out routeId);
+            return _routes.Contains(route);
         }
 
         public void Dispose()
         {
-            _provider.Received -= OnProviderReceived;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            var routes = _routes.Values.ToArray();
-            _routes.Clear();
-
-            foreach (var routeId in routes)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
             {
-                _container.Release(routeId);
+                return;
             }
+
+            if (disposing)
+            {
+                _provider.Received -= OnProviderReceived;
+                _routes.Clear();
+            }
+
+            _disposed = true;
         }
 
         private void OnProviderReceived(IPEndPoint remote, IAudioPacket packet) 
         {
-            if (remote == null || !_routes.TryGetValue(remote, out int routeId) || packet.RouteId != routeId)
+            if (remote == null || !_routes.Contains(remote))
             {
                 return;
             }
 
             foreach (var route in _routes.ToArray())
             {
-                if (route.Value == packet.RouteId)
+                if (remote.Equals(route))
                 {
                     continue;
                 }
 
-                _provider.Send(route.Key, packet);
+                _provider.Send(route, packet);
             }
         }
 

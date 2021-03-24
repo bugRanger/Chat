@@ -16,13 +16,16 @@
         private readonly object _locker;
         private readonly IAudioRouter _router;
         private readonly Dictionary<IUser, int> _userToPort;
-        private bool _disposing;
+
+        private bool _disposed;
 
         #endregion Fields
 
         #region Properties
 
         public int Id { get; set; }
+
+        public int RouteId { get; set; }
 
         public CallState State { get; private set; }
 
@@ -55,27 +58,22 @@
 
         #region Methods
 
-        public int AppendOrUpdate(IUser user, int port = 0)
+        public void AppendOrUpdate(IUser user, int port = 0)
         {
             lock (_locker)
             {
-                int routeId = 0;
-
-                if (_userToPort.TryGetValue(user, out int routePort) && routePort != 0)
-                {
-                    _router.TryGet(new IPEndPoint(user.Remote.Address, routePort), out routeId);
-                    return routeId;
-                }
-
                 if (port != 0)
                 {
-                    routeId = _router.Append(new IPEndPoint(user.Remote.Address, port));
+                    if (_userToPort.TryGetValue(user, out int routePort) && routePort != 0)
+                    {
+                        _router.Remove(new IPEndPoint(user.Remote.Address, routePort));
+                    }
+
+                    _router.Append(new IPEndPoint(user.Remote.Address, port));
                 }
 
                 _userToPort[user] = port;
                 RefreshState();
-
-                return routeId;
             }
         }
 
@@ -119,14 +117,18 @@
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposing)
+            if (_disposed)
             {
                 return;
             }
 
-            _userToPort.Clear();
-            _router.Dispose();
-            _disposing = true;
+            if (disposing)
+            {
+                _userToPort.Clear();
+                _router.Dispose();
+            }
+
+            _disposed = true;
         }
 
         private void RefreshState()
