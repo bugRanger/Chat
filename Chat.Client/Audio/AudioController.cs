@@ -113,12 +113,10 @@
 
             while (packet.TryUnpack(bytes, ref offset, count))
             {
-                // TODO swap route id => to call id?
-                var route = _routes.Values.FirstOrDefault();
-                //if (!_routes.TryGetValue(packet.RouteId, out AudioRoute route))
-                //{
-                //    continue;
-                //}
+                if (!_routes.TryGetValue(packet.RouteId, out AudioRoute route))
+                {
+                    continue;
+                }
 
                 route.Handle(packet);
             }
