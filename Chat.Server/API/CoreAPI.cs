@@ -5,10 +5,11 @@
     using System.Collections.Generic;
 
     using NLog;
+    using Newtonsoft.Json;
 
     using Chat.Api;
     using Chat.Api.Messages;
-    using Newtonsoft.Json;
+    using Chat.Net.Socket;
 
     delegate void HandleMessage(IPEndPoint remote, int index, IMessage message);
 

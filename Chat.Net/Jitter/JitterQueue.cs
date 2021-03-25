@@ -1,21 +1,16 @@
-﻿namespace Chat.Audio
+﻿namespace Chat.Net.Jitter
 {
     using System;
 
-    public class Jitter
+    public class JitterQueue<T> 
+        where T : IPacket
     {
-        #region Constants
-
-        private const uint JITTER_MAX_DURATION = 120;
-
-        #endregion Constants
-
         #region Fields
 
         private readonly object _locker;
 
-        private readonly IAudioPacket[] _packets;
         private readonly uint _limit;
+        private readonly T[] _packets;
 
         private uint _indexPull;
         private uint _indexPush;
@@ -26,12 +21,12 @@
 
         #region Constructors
 
-        public Jitter(IAudioCodec codec)
+        public JitterQueue(uint limit)
         {
             _locker = new object();
 
-            _limit = JITTER_MAX_DURATION / codec.Format.Duration;
-            _packets = new IAudioPacket[_limit];
+            _packets = new T[limit];
+            _limit = limit;
 
             _indexPull = int.MaxValue;
             _indexPush = 0;
@@ -43,7 +38,7 @@
 
         #region Methods
 
-        public void Push(IAudioPacket packet)
+        public void Push(T packet)
         {
             lock (_locker)
             {
@@ -67,43 +62,53 @@
             }
         }
 
-        public IAudioPacket Pull(bool hungry = false)
+        public uint? Pull(bool hungry, out T packet)
         {
+            packet = default;
+
             lock (_locker)
             {
                 if (hungry)
+                {
                     _losses += 1;
+                }
 
                 if (hungry && _losses != 0 && _losses <= _limit)
+                {
                     return null;
+                }
 
                 if (!hungry && _reordered != 0 && _reordered < _limit)
+                {
                     return null;
+                }
 
-                var index = _indexPull % _limit;
-                var packet = _packets[index];
+                var index = _indexPull;
+                packet = _packets[index % _limit];
 
                 if (packet == null)
-                    if (!hungry)
-                        return null;
-                    else
-                        return new AudioPacket
-                        {
-                            SequenceId = _indexPull,
-                            Payload = null,
-                        };
+                {
+                    if (hungry)
+                    {
+                        return index;
+                    }
 
-                _packets[index] = null;
+                    return null;
+                }
+
+                _packets[index % _limit] = default;
                 _indexPull += 1;
 
                 if (!hungry && packet != null)
+                {
                     _losses = 0;
+                }
 
-               return packet;
+               return index;
             }
         }
 
-        public IAudioPacket Peek()
+        public T Peek()
         {
             lock (_locker)
             {
@@ -117,7 +122,7 @@
             {
                 for (int i = 0; i < _limit; i++)
                 {
-                    _packets[i] = null;
+                    _packets[i] = default;
                 }
 
                 _indexPull = int.MaxValue;

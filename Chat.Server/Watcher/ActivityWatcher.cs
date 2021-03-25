@@ -6,7 +6,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
-    using System.Diagnostics;
+
+    using Chat.Net.Socket;
 
     public class ActivityWatcher : IActivityWatcher
     {

@@ -1,8 +1,7 @@
-﻿namespace Chat.Server
+﻿namespace Chat.Net.Socket
 {
     using System;
     using System.Net;
-
 
     public delegate void PreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count);
 

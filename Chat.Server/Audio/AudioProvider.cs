@@ -4,6 +4,7 @@
     using System.Net;
 
     using Chat.Audio;
+    using Chat.Net.Socket;
 
     public class AudioProvider : IAudioProvider, IDisposable
     {

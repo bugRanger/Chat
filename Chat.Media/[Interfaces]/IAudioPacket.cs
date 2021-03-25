@@ -1,18 +1,16 @@
 ﻿namespace Chat.Audio
 {
     using System;
-    
-    public interface IAudioPacket
+
+    using Chat.Net.Jitter;
+
+    public interface IAudioPacket : IPacket
     {
         #region Properties
 
         //int SessionId { get; }
 
         int RouteId { get; }
-
-        bool Mark { get; }
-
-        uint SequenceId { get; }
 
         ArraySegment<byte> Payload { get; }
 

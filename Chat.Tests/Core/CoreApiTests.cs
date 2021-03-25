@@ -10,6 +10,7 @@
     using NUnit.Framework;
 
     using Chat.Api;
+    using Chat.Net.Socket;
 
     using Chat.Server;
     using Chat.Server.API;

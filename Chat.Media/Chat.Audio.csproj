@@ -8,4 +8,8 @@
     <PackageReference Include="NAudio" Version="1.10.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Chat.Net\Chat.Net.csproj" />
+  </ItemGroup>
+
 </Project>

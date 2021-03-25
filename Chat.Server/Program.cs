@@ -6,12 +6,12 @@
     using NLog;
 
     using Chat.Api;
+    using Chat.Net.Socket;
 
     using Chat.Server.API;
     using Chat.Server.Auth;
     using Chat.Server.Call;
     using Chat.Server.Audio;
-    using Chat.Server.Network;
     using Chat.Server.Watcher;
 
     class Program

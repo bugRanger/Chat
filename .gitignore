@@ -2,6 +2,8 @@
 packages/
 Chat.Api/bin/
 Chat.Api/obj/
+Chat.Net/bin/
+Chat.Net/obj/
 Chat.Server/bin/
 Chat.Server/obj/
 Chat.Tests/bin/

@@ -1,19 +1,21 @@
-﻿namespace Chat.Server.Network
+﻿namespace Chat.Net.Socket
 {
     using System;
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;
 
     using NLog;
 
-    public class TcpProvider : INetworkProvider, ITcpСontroller, IDisposable
+    public class UdpProvider : INetworkProvider, INetworkСontroller, IDisposable
     {
         #region Constants
 
-        private const int INACTIVE_INTERVAL = 100;
+        private const int PACKET_SIZE = ushort.MaxValue;
+        private const uint IOC_IN = 0x80000000; 
+        private const uint IOC_VENDOR = 0x18000000; 
+        private const uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12; 
 
         #endregion Constants
 
@@ -22,37 +24,30 @@
         private readonly ILogger _logger;
 
         private readonly SocketFactory _socketFactory;
-        private readonly ConcurrentDictionary<EndPoint, ITcpConnection> _connections;
 
         private ISocket _listener;
         private CancellationTokenSource _cancellation;
 
-        private int _limit;
         private bool _disposing;
 
         #endregion Fields
 
         #region Events
 
-        public event Action<IPEndPoint> ConnectionAccepted;
-        public event Action<IPEndPoint> ConnectionClosing;
         public event PreparePacket PreparePacket;
 
         #endregion Events
 
         #region Constructors
 
-        public TcpProvider(SocketFactory socketFactory, int limit = 1)
+        public UdpProvider(SocketFactory socketFactory)
         {
             _logger = LogManager.GetCurrentClassLogger();
 
             _socketFactory = socketFactory;
-            _limit = limit;
-
-            _connections = new ConcurrentDictionary<EndPoint, ITcpConnection>();
         }
 
-        ~TcpProvider()
+        ~UdpProvider()
         {
             Dispose(false);
         }
@@ -74,12 +69,17 @@
 
         public async Task StartAsync(IPEndPoint endPoint)
         {
-            _listener = _socketFactory(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _listener = _socketFactory(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            unchecked
+            {
+                _listener.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+            }
             _listener.Bind(endPoint);
 
             _cancellation = new CancellationTokenSource();
 
-            await ListenAsync(_cancellation.Token);
+            await ListenAsync(PreparePacket, _cancellation.Token);
         }
 
         public void Stop()
@@ -87,20 +87,23 @@
             _listener?.Close();
         }
 
-        private async Task ListenAsync(CancellationToken token)
+        private async Task ListenAsync(PreparePacket prepare, CancellationToken token)
         {
             token.Register(() => _listener?.Close());
 
-            await Task.Run(async () =>
+            await Task.Run(() =>
             {
-                _listener.Listen(_limit);
+                var count = 0;
+                var buffer = new byte[PACKET_SIZE];
 
                 while (!token.IsCancellationRequested)
                 {
-                    ISocket socket = null;
+                    int received = 0;
+                    EndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
+
                     try
                     {
-                        socket = _listener.Accept();
+                        received = _listener.ReceiveFrom(buffer, count, PACKET_SIZE - count, ref endPoint);
                     }
                     catch (Exception ex)
                     {
@@ -108,27 +111,38 @@
                         break;
                     }
 
-                    TcpConnection client = null;
-                    try
+                    if (received == 0)
                     {
-                        if (!_connections.TryAdd(socket.RemoteEndPoint, client = new TcpConnection(socket)))
-                            continue;
-
-                        client.Closing += Client_Closing;
-
-                        _ = client.ListenAsync(PreparePacket, token);
-
-                        ConnectionAccepted?.Invoke(client.RemoteEndPoint);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex);
+                        break;
                     }
 
-                    token.ThrowIfCancellationRequested();
-                    await Task.Delay(INACTIVE_INTERVAL);
+                    count += received;
+
+                    int offset = 0;
+                    int position = 0;
+
+                    prepare?.Invoke((IPEndPoint)endPoint, buffer, ref offset, count);
+
+                    while (offset > position)
+                    {
+                        var packet = new ArraySegment<byte>(buffer, position, offset - position);
+
+                        if (_logger.IsTraceEnabled)
+                        {
+                            _logger.Trace("Received packet: " + BitConverter.ToString(packet.ToArray()));
+                        }
+
+                        position += offset;
+                    }
+
+                    count -= offset;
+                    if (count > 0)
+                    {
+                        Buffer.BlockCopy(buffer, offset, buffer, 0, count);
+                    }
                 }
-            });
+            },
+            token);
             
             FreeToken();
             FreeSocket();
@@ -136,32 +150,7 @@
 
         public void Send(IPEndPoint remote, ArraySegment<byte> bytes)
         {
-            if (!_connections.TryGetValue(remote, out ITcpConnection connection))
-            {
-                _logger?.Warn($"Send error, connection not found - {remote}");
-                return;
-            }
-
-            connection.Send(bytes);
-        }
-
-        public void Disconnect(IPEndPoint remote)
-        {
-            if (!_connections.TryGetValue(remote, out ITcpConnection connection))
-            {
-                _logger?.Warn($"Disconnet error, connection not found - {remote}");
-                return;
-            }
-
-            connection.Disconnect();
-        }
-
-        private void Client_Closing(ITcpConnection client)
-        {
-            client.Closing -= Client_Closing;
-
-            _connections.TryRemove(client.RemoteEndPoint, out _);
-            ConnectionClosing?.Invoke(client.RemoteEndPoint);
+            _listener.SendTo(bytes.Array, bytes.Offset, bytes.Count, remote);
         }
 
         private void FreeToken()
