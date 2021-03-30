@@ -16,6 +16,7 @@
         private uint _indexPush;
         private uint _reordered;
         private uint _losses;
+        private bool _marker;
 
         #endregion Fields
 
@@ -54,11 +55,13 @@
                     Clear();
                 }
 
-                var index = (_indexPush + delta) % _limit;
-                if (packet.Mark)
+                if (packet.Mark || !_marker && _indexPull > packet.SequenceId)
+                {
                     _indexPull = packet.SequenceId;
+                    _marker |= packet.Mark;
+                }
 
-                _packets[index] = packet;
+                _packets[(_indexPush + delta) % _limit] = packet;
 
                 if (delta != 0)
                 {
@@ -82,7 +85,7 @@
 
             lock (_locker)
             {
-                if (hungry)
+                if (hungry || !_marker)
                 {
                     _losses += 1;
                 }
@@ -143,6 +146,7 @@
                 _indexPush = 0;
                 _reordered = 0;
                 _losses = 0;
+                _marker = false;
             }
         }
 
