@@ -42,23 +42,37 @@
         {
             lock (_locker)
             {
-                var index = packet.SequenceId % _limit;
-                var current = _packets[index];
+                var delta = (byte)(_indexPull == uint.MaxValue ? 0 : packet.SequenceId - _indexPush);
+                if (delta >= _limit || delta >= -_limit)
+                {
+                    if (delta < 0 && -delta > _limit)
+                    {
+                        return;
+                    }
 
-                if (current != null)
-                    return;
+                    delta = 0;
+                    Clear();
+                }
 
+                var index = (_indexPush + delta) % _limit;
                 if (packet.Mark)
                     _indexPull = packet.SequenceId;
 
-                bool ordered = packet.SequenceId == _indexPush + 1;
-                if (ordered)
-                    _reordered = 0;
-                else
-                    _reordered += 1;
-
                 _packets[index] = packet;
-                _indexPush = packet.SequenceId;
+
+                if (delta != 0)
+                {
+                    _reordered += 1;
+                }
+                else
+                {
+                    _reordered = 0;
+                }
+
+                if (delta > 0)
+                {
+                    _indexPush += delta;
+                }
             }
         }
 
