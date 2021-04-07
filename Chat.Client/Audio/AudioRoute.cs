@@ -16,6 +16,7 @@
 
         private uint _sequenceId;
         private bool _disposed;
+        private bool _first;
 
         #endregion Fields
 
@@ -35,6 +36,7 @@
             _transport = transport;
 
             _buffer = new AudioBuffer(codec);
+            _first = true;
 
             WaveFormat = _codec.Format.ToWaveFormat();
         }
@@ -55,10 +57,13 @@
 
             var packet = new AudioPacket
             {
+                Mark = _first,
                 SequenceId = ++_sequenceId,
                 RouteId = Id,
                 Payload = compressed,
             };
+
+            _first = false;
 
             _transport.Send(packet);
         }
