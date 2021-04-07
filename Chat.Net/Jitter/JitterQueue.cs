@@ -17,6 +17,7 @@
         private uint? _indexPull;
         private int? _indexPush;
         private int _losses;
+        private int _satiety;
         private bool _marker;
 
         #endregion Fields
@@ -70,13 +71,14 @@
 
                 if (!packet.Mark && !_marker) 
                 {
-                    _losses++;
+                    _satiety++;
                 }
                 
-                if (packet.Mark || !_marker && (delta < 0  || _losses >= _limit))
+                if (packet.Mark || !_marker && _satiety + 1 >= _limit)
                 {
                     _indexPull = _indexLast;
                     _marker = true;
+                    _satiety = 0;
                 }
 
                 _packets[(_indexPush.Value + delta) % _limit] = packet;
@@ -106,6 +108,9 @@
                 var index = _indexPull.Value % _limit;
 
                 packet = _packets[index];
+                if (packet == null || packet.SequenceId != _indexPull.Value)
+                    packet = default;
+
                 if (!hungry && packet == null)
                     return null;
 
@@ -147,6 +152,7 @@
                 _indexLast = null;
                 _indexPull = null;
                 _indexPush = null;
+                _satiety = 0;
                 _losses = 0;
                 _marker = false;
             }
