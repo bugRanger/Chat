@@ -65,7 +65,7 @@
 
             if (recover)
             {
-                uncompressed = _codec.Restore(packet.Payload);
+                uncompressed = _codec.Restore(packet?.Payload ?? null);
             }
             else
             {
