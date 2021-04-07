@@ -1,8 +1,9 @@
 ﻿namespace Chat.Audio
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
+    using System.Collections.Generic;
+
     using NAudio.Wave;
 
     public class AudioCapture : IAudioConsumer, IDisposable
@@ -44,6 +45,7 @@
         #endregion Constructors
 
         #region Methods
+
         public void Append(IAudioStream stream)
         {
             if (_streams.Add(stream))
@@ -58,6 +60,16 @@
             {
                 Received -= stream.Write;
             }
+        }
+
+        public void Mute() 
+        {
+            _waveIn.StopRecording();
+        }
+
+        public void Unmute()
+        {
+            _waveIn.StartRecording();
         }
 
         public void Dispose()

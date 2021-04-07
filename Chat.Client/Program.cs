@@ -24,6 +24,8 @@
 
         static AudioController AudioController { get; set; }
 
+        static AudioCapture AudioCapture { get; set; }
+
         static MessageFactory MessageFactory { get; set; }
 
         static EasySocket ApiSocket { get; set; }
@@ -48,7 +50,7 @@
 
             AudioController = new AudioController(new AudioFormat(), CallSocket, format => new PcmCodec(format));
             AudioController.Registration(format => new AudioPlayback(format));
-            AudioController.Registration(format => new AudioCapture(format));
+            AudioController.Registration(format => AudioCapture = new AudioCapture(format));
 
             var commandParser = new CommandParser('!')
             {
@@ -83,6 +85,12 @@
                 new CommandBuilder<HangUpCommand>("hangup")
                     //.Parameter("u", (cmd, value) => cmd.SessionId = int.Parse(value))
                     .Build(CallHangUpHandle),
+
+                new CommandBuilder<MuteCommand>("mute")
+                    .Build(MuteHandle),
+
+                new CommandBuilder<UnmuteCommand>("unmute")
+                    .Build(UnMuteHandle),
             };
 
             while (true)
@@ -204,6 +212,16 @@
         {
             CallSession?.Dispose();
             Send(new CallCancelRequest { SessionId = CallSessionId/*command.SessionId*/ });
+        }
+
+        static void MuteHandle(MuteCommand command)
+        {
+            AudioCapture.Mute();
+        }
+
+        static void UnMuteHandle(UnmuteCommand command)
+        {
+            AudioCapture.Unmute();
         }
 
         static void ChangeState(CallState state)
