@@ -123,6 +123,62 @@
         }
 
         [Test]
+        public void Push_NonFirstOrdered_Pulled()
+        {
+            // Arrange
+            packet = new Packet(1, false);
+
+            // Act
+            _queue.Push(packet);
+            packet = _queue.Peek();
+            // Assert
+            Assert.AreEqual(null, packet);
+            // Act
+            index = _queue.Pull(false, out packet);
+            // Assert
+            Assert.AreEqual(null, packet);
+
+
+            // Act
+            index = _queue.Pull(true, out packet);
+            // Assert
+            Assert.AreEqual(null, packet);            Assert.AreEqual(null, index);
+
+            // Arrange
+            packet = new Packet(2, false);
+            // Act
+            _queue.Push(packet);
+            packet = _queue.Peek();
+            // Assert
+            Assert.AreEqual(null, packet);
+            // Act
+            index = _queue.Pull(false, out packet);
+            // Assert
+            Assert.AreEqual(null, packet);
+
+
+            // Act
+            index = _queue.Pull(true, out packet);
+            // Assert
+            Assert.AreEqual(null, packet);            Assert.AreEqual(null, index);
+
+            // Arrange
+            packet = new Packet(3, false);
+            // Act
+            _queue.Push(packet);
+            packet = _queue.Peek();
+            // Assert
+            Assert.AreNotEqual(null, packet);
+            // Act
+            index = _queue.Pull(false, out packet);
+            // Assert
+            Assert.AreNotEqual(null, packet);
+            Assert.AreEqual(1, index);
+            Assert.AreEqual(1, packet.SequenceId);
+            Assert.AreEqual(false, packet.Mark);
+        }
+
+        [Test]
         public void Push_Reordered_Pulled()
         {
             // Arrange

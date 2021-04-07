@@ -13,6 +13,7 @@
         private readonly uint _dropped;
         private readonly T[] _packets;
 
+        private uint? _indexLast;
         private uint? _indexPull;
         private int? _indexPush;
         private int _losses;
@@ -62,10 +63,20 @@
                     _indexPush = (int)packet.SequenceId;
                 }
 
-                if (packet.Mark || !_marker && delta < 0)
+                if (!_indexLast.HasValue || _indexLast.Value > packet.SequenceId)
                 {
-                    _indexPull = packet.SequenceId;
-                    _marker |= packet.Mark;
+                    _indexLast = packet.SequenceId;
+                }
+
+                if (!packet.Mark && !_marker) 
+                {
+                    _losses++;
+                }
+                
+                if (packet.Mark || !_marker && (delta < 0  || _losses >= _limit))
+                {
+                    _indexPull = _indexLast;
+                    _marker = true;
                 }
 
                 _packets[(_indexPush.Value + delta) % _limit] = packet;
@@ -133,6 +144,7 @@
                     _packets[i] = default;
                 }
 
+                _indexLast = null;
                 _indexPull = null;
                 _indexPush = null;
                 _losses = 0;
