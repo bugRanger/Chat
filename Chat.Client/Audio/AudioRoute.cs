@@ -73,6 +73,12 @@
             return _buffer.Read(buffer, offset, count);
         }
 
+        public void Flush()
+        {
+            _first = true;
+            _sequenceId = 0;
+        }
+
         public void Dispose() 
         {
             Dispose(true);

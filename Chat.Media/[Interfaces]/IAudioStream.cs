@@ -10,6 +10,8 @@
 
         void Write(ArraySegment<byte> buffer);
 
+        void Flush();
+
         #endregion Methods
     }
 }

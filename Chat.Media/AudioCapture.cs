@@ -50,6 +50,7 @@
         {
             if (_streams.Add(stream))
             {
+                stream.Flush();
                 Received += stream.Write;
             }
         }
