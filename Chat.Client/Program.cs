@@ -36,6 +36,9 @@
 
         static string Me { get; set; }
 
+        [Obsolete("Removed")]
+        static int SessionId { get; set; }
+
         #endregion Properties
 
         static void Main(string[] args)
@@ -126,6 +129,8 @@
                     case CallResponse response:
                         if (!CallController.TryGet(response.SessionId, out _))
                         {
+                            SessionId = response.SessionId;
+
                             CallController.Append(response.SessionId, response.RouteId);
                             Console.WriteLine($" < Call routeID: {response.RouteId}");
                         }
@@ -134,6 +139,8 @@
                     case CallBroadcast broadcast:
                         if (!CallController.TryGet(broadcast.SessionId, out var callSession) && broadcast.State == CallState.Calling)
                         {
+                            SessionId = broadcast.SessionId;
+
                             Send(new CallInviteRequest { SessionId = broadcast.SessionId, RoutePort = CallSocket.Local.Port });
                             Console.WriteLine($" < Call sessionID: {broadcast.SessionId}");
                         }
@@ -158,7 +165,7 @@
 
         #region Commands
 
-        private static void ConnectionHandle(ConnectCommand command)
+        static void ConnectionHandle(ConnectCommand command)
         {
             CallSocket.Connection(command.Address, command.Port);
             ApiSocket.Connection(command.Address, command.Port);
@@ -169,7 +176,7 @@
             Send(new LoginRequest { User = Me });
         }
 
-        private static void DisconnectHandle(DisconnectCommand command)
+        static void DisconnectHandle(DisconnectCommand command)
         {
             ApiSocket.Disconnect();
             CallSocket.Disconnect();
@@ -202,11 +209,15 @@
 
         static void CallInviteHandle(CallInviteCommand command)
         {
+            command.SessionId = SessionId;
+
             Send(new CallInviteRequest { SessionId = command.SessionId, RoutePort = CallSocket.Local.Port });
         }
 
         static void CallHangUpHandle(HangUpCommand command)
         {
+            command.SessionId = SessionId;
+
             if (!CallController.Remove(command.SessionId))
                 return;
 
