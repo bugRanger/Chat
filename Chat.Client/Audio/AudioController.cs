@@ -55,6 +55,19 @@
             _consumers.Add(makeConsumer(Format));
         }
 
+        public bool TryGet(int routeId, out IAudioStream route)
+        {
+            route = null;
+
+            if (!_routes.ContainsKey(routeId))
+            {
+                return false;
+            }
+
+            route = _routes[routeId];
+            return true;
+        }
+
         public void Append(int routeId) 
         {
             if (_routes.ContainsKey(routeId))

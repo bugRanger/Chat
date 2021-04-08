@@ -62,16 +62,6 @@
             }
         }
 
-        public void Mute() 
-        {
-            _waveIn.StopRecording();
-        }
-
-        public void Unmute()
-        {
-            _waveIn.StartRecording();
-        }
-
         public void Dispose()
         {
             Dispose(true);

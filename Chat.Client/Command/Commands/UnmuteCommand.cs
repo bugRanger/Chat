@@ -4,8 +4,7 @@
     {
         #region Properties
 
-        // TODO: Add unmute support for call session.
-        public int SessionId { get; internal set; }
+        public int RouteId { get; internal set; }
 
         #endregion Properties
     }
