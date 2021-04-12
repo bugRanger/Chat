@@ -2,13 +2,13 @@
 {
     using System;
 
-    public delegate void PreparePacket(byte[] bytes, ref int offset, int count);
+    public delegate void Received(byte[] bytes, ref int offset, int count);
 
     public interface INetworkStream
     {
         #region Events
 
-        event PreparePacket PreparePacket;
+        event Received Received;
 
         #endregion Events
 

@@ -17,6 +17,7 @@
     using Chat.Audio.Codecs;
     using Chat.Client.Call;
     using Chat.Client.Audio;
+    using Chat.Net.Socket;
 
     class Program
     {
@@ -30,9 +31,9 @@
 
         static MessageFactory MessageFactory { get; set; }
 
-        static EasySocket ApiSocket { get; set; }
+        static ClientSocket ApiSocket { get; set; }
 
-        static EasySocket CallSocket { get; set; }
+        static ClientSocket CallSocket { get; set; }
 
         static string Me { get; set; }
 
@@ -45,9 +46,9 @@
         {
             MessageFactory = new MessageFactory(true);
 
-            CallSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
-            ApiSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-            ApiSocket.PreparePacket += ApiReceived;
+            CallSocket = new ClientSocket(() => NetworkSocket.Create(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
+            ApiSocket = new ClientSocket(() => NetworkSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+            ApiSocket.Received += ApiReceived;
 
             AudioController = new AudioController(new AudioFormat(), CallSocket, format => new PcmCodec(format));
             AudioController.Registration(format => new AudioPlayback(format));
@@ -167,8 +168,8 @@
 
         static void ConnectionHandle(ConnectCommand command)
         {
-            CallSocket.Connection(command.Address, command.Port);
-            ApiSocket.Connection(command.Address, command.Port);
+            CallSocket.Connection(new IPEndPoint(command.Address, command.Port));
+            ApiSocket.Connection(new IPEndPoint(command.Address, command.Port));
 
             if (string.IsNullOrWhiteSpace(Me))
                 return;

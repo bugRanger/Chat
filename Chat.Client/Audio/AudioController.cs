@@ -35,7 +35,7 @@
             _codecFactory = codecFactory;
 
             _transport = transport;
-            _transport.PreparePacket += OnTransportReceived;
+            _transport.Received += OnTransportReceived;
 
             _routes = new Dictionary<int, AudioRoute>();
             _consumers = new List<IAudioConsumer>();
@@ -144,7 +144,7 @@
 
             if (disposing)
             {
-                _transport.PreparePacket -= OnTransportReceived;
+                _transport.Received -= OnTransportReceived;
 
                 for (int i = _routes.Count - 1; i >= 0; i--)
                 {
