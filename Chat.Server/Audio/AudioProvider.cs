@@ -25,7 +25,7 @@
         public AudioProvider(INetworkСontroller network) 
         {
             _network = network;
-            _network.PreparePacket += OnNetworkPreparePacket;
+            _network.ReceivedFrom += OnNetworkPreparePacket;
         }
 
         private void OnNetworkPreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count)
@@ -43,14 +43,14 @@
 
         #region Methods
 
-        public void Send(IPEndPoint target, IAudioPacket packet)
+        public void SendTo(IPEndPoint target, IAudioPacket packet)
         {
-            _network.Send(target, packet.Pack());
+            _network.SendTo(target, packet.Pack());
         }
 
         public void Dispose()
         {
-            _network.PreparePacket -= OnNetworkPreparePacket;
+            _network.ReceivedFrom -= OnNetworkPreparePacket;
         }
 
         #endregion Methods

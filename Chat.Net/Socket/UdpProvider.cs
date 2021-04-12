@@ -34,7 +34,7 @@
 
         #region Events
 
-        public event PreparePacket PreparePacket;
+        public event ReceivedFrom ReceivedFrom;
 
         #endregion Events
 
@@ -79,7 +79,7 @@
 
             _cancellation = new CancellationTokenSource();
 
-            await ListenAsync(PreparePacket, _cancellation.Token);
+            await ListenAsync(ReceivedFrom, _cancellation.Token);
         }
 
         public void Stop()
@@ -87,7 +87,7 @@
             _listener?.Close();
         }
 
-        private async Task ListenAsync(PreparePacket prepare, CancellationToken token)
+        private async Task ListenAsync(ReceivedFrom prepare, CancellationToken token)
         {
             token.Register(() => _listener?.Close());
 
@@ -148,7 +148,7 @@
             FreeSocket();
         }
 
-        public void Send(IPEndPoint remote, ArraySegment<byte> bytes)
+        public void SendTo(IPEndPoint remote, ArraySegment<byte> bytes)
         {
             _listener.SendTo(bytes.Array, bytes.Offset, bytes.Count, remote);
         }

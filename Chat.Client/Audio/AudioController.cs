@@ -5,7 +5,7 @@
     using System.Collections.Generic;
 
     using Chat.Audio;
-    using Chat.Client.Network;
+    using Chat.Net.Socket;
 
     public class AudioController : IAudioController, IAudioTransport, IDisposable
     {

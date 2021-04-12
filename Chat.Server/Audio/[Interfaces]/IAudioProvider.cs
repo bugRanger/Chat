@@ -15,7 +15,7 @@
 
         #region Methods
 
-        void Send(IPEndPoint target, IAudioPacket packet);
+        void SendTo(IPEndPoint target, IAudioPacket packet);
 
         #endregion Methods
     }

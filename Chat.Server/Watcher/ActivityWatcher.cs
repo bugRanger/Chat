@@ -41,7 +41,7 @@
             _network = network;
             _network.ConnectionAccepted += OnConnectionAccepted;
             _network.ConnectionClosing += OnConnectionClosing;
-            _network.PreparePacket += OnPreparePacket;
+            _network.ReceivedFrom += OnPreparePacket;
         }
 
         #endregion Constructors

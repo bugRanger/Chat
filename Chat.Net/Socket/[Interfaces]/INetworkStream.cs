@@ -1,4 +1,4 @@
-﻿namespace Chat.Client.Network
+﻿namespace Chat.Net.Socket
 {
     using System;
 

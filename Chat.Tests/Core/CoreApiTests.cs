@@ -51,7 +51,7 @@
 
             NetworkMoq = new Mock<ITcpСontroller>();
             NetworkMoq
-                .Setup(s => s.Send(It.IsAny<IPEndPoint>(), It.IsAny<ArraySegment<byte>>()))
+                .Setup(s => s.SendTo(It.IsAny<IPEndPoint>(), It.IsAny<ArraySegment<byte>>()))
                 .Callback<IPEndPoint, ArraySegment<byte>>((remote, data) =>
                 {
                     ActualEvent.Add(new TestEvent(remote, data.ToArray()));
@@ -93,7 +93,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[0], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(0, Authorization.GetUsers().Count());
@@ -114,7 +114,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[1], MessageFactory.Pack("{\"Id\":0,\"Type\":\"user-offline\",\"Payload\":{\"User\":\"User1\"}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[0], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(1, Authorization.GetUsers().Count());
@@ -133,7 +133,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":0,\"Type\":\"users\",\"Payload\":{\"Users\":[]}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[0], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(1, Authorization.GetUsers().Count());
@@ -152,7 +152,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[1], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"AuthDuplicate\",\"Reason\":\"User exists\"}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[1], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[1], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(1, Authorization.GetUsers().Count());
@@ -170,7 +170,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[0], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"AuthDuplicate\",\"Reason\":\"User exists\"}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[0], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[0], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(1, Authorization.GetUsers().Count());
@@ -195,7 +195,7 @@
             }
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[^1], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[^1], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(true, Authorization.TryGet($"User{Remotes.Count}", out _));
@@ -212,7 +212,7 @@
             ExpectedEvent.Add(new TestEvent(Remotes[^1], MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: User\"}}")));
 
             // Act
-            NetworkMoq.Raise(s => s.PreparePacket += null, Remotes[^1], request, 0, request.Length);
+            NetworkMoq.Raise(s => s.ReceivedFrom += null, Remotes[^1], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(false, Authorization.TryGet(Remotes[^1], out _));

@@ -3,13 +3,11 @@
     using System;
     using System.Net;
     using System.Net.Sockets;
-    
+
     using Chat.Api;
     using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Call;
     using Chat.Api.Messages.Text;
-
-    using Chat.Client.Network;
     using Chat.Client.Commander;
     using Chat.Client.Commander.Commands;
 

@@ -1,12 +1,9 @@
-﻿namespace Chat.Client.Network
+﻿namespace Chat.Net.Socket
 {
     using System;
-    using System.IO;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using Chat.Net.Socket;
 
     public class ClientSocket : INetworkStream
     {

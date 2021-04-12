@@ -36,7 +36,7 @@
 
         public event Action<IPEndPoint> ConnectionAccepted;
         public event Action<IPEndPoint> ConnectionClosing;
-        public event PreparePacket PreparePacket;
+        public event ReceivedFrom ReceivedFrom;
 
         #endregion Events
 
@@ -116,7 +116,7 @@
 
                         client.Closing += Client_Closing;
 
-                        _ = client.ListenAsync(PreparePacket, token);
+                        _ = client.ListenAsync(ReceivedFrom, token);
 
                         ConnectionAccepted?.Invoke(client.RemoteEndPoint);
                     }
@@ -134,7 +134,7 @@
             FreeSocket();
         }
 
-        public void Send(IPEndPoint remote, ArraySegment<byte> bytes)
+        public void SendTo(IPEndPoint remote, ArraySegment<byte> bytes)
         {
             if (!_connections.TryGetValue(remote, out ITcpConnection connection))
             {
