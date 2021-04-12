@@ -14,3 +14,6 @@ Chat.Tests/obj/
 /Chat.Client/bin/Debug/netcoreapp3.1
 /.idea/.idea.Chat/.idea
 /Chat.sln.DotSettings.user
+/Chat.Audio/obj/Debug/netcoreapp3.1
+/Chat.Audio/obj
+/Chat.Audio/bin/Debug/netcoreapp3.1

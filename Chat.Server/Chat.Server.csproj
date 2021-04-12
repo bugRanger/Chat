@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Chat.Api\Chat.Api.csproj" />
-    <ProjectReference Include="..\Chat.Media\Chat.Audio.csproj" />
+    <ProjectReference Include="..\Chat.Audio\Chat.Audio.csproj" />
     <ProjectReference Include="..\Chat.Net\Chat.Net.csproj" />
   </ItemGroup>
 
