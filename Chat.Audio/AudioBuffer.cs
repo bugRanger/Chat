@@ -53,6 +53,11 @@
             return _sampleProvider.Read(buffer, offset, count);
         }
 
+        internal int Read(byte[] buffer, int offset, int count)
+        {
+            return _waveProvider.Read(buffer, offset, count);
+        }
+
         public void Dispose()
         {
             Dispose(true);

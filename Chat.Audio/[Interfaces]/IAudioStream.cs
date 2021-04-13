@@ -10,6 +10,8 @@
 
         void Write(ArraySegment<byte> buffer);
 
+        int Read(byte[] buffer, int offset, int count);
+
         void Flush();
 
         #endregion Methods

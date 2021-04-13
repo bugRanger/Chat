@@ -68,6 +68,11 @@
             _transport.Send(packet);
         }
 
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            return _buffer.Read(buffer, offset, count);
+        }
+
         public int Read(float[] buffer, int offset, int count)
         {
             return _buffer.Read(buffer, offset, count);
