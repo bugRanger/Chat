@@ -1,8 +1,6 @@
-﻿namespace Chat.Client.Audio
+﻿namespace Chat.Audio
 {
     using System;
-
-    using Chat.Audio;
 
     public interface IAudioTransport
     {

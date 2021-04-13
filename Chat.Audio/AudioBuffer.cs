@@ -36,21 +36,21 @@
             _sampleProvider = _waveProvider.ToSampleProvider();
 
             _jitter = new JitterTimer<IAudioPacket>(new AudioPacketRestorer(), codec.Format.Duration);
-            _jitter.Completed += OnCaptured; 
+            _jitter.Completed += OnCompleted; 
         }
 
         #endregion Constructors
 
         #region Methods
 
-        public int Read(float[] buffer, int offset, int count)
-        {
-            return _sampleProvider.Read(buffer, offset, count);
-        }
-
         public void Enqueue(IAudioPacket packet)
         {
             _jitter.Append(packet);
+        }
+
+        public int Read(float[] buffer, int offset, int count)
+        {
+            return _sampleProvider.Read(buffer, offset, count);
         }
 
         public void Dispose()
@@ -59,7 +59,7 @@
             GC.SuppressFinalize(this);
         }
 
-        private void OnCaptured(bool recover, IAudioPacket packet)
+        private void OnCompleted(bool recover, IAudioPacket packet)
         {
             byte[] uncompressed;
 
@@ -84,7 +84,7 @@
 
             if (disposing)
             {
-                _jitter.Completed -= OnCaptured;
+                _jitter.Completed -= OnCompleted;
                 _jitter.Dispose();
                 _jitter = null;
             }

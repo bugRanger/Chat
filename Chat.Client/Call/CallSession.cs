@@ -2,7 +2,7 @@
 {
     using System;
 
-    using Audio;
+    using Chat.Audio;
 
     using Chat.Api.Messages.Call;
 
