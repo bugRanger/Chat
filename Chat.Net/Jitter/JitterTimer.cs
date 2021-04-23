@@ -3,8 +3,8 @@
     using System;
     using System.Threading;
 
-    public class JitterTimer<T> : IDisposable 
-        where T : IPacket
+    public class JitterTimer<TPacket> : IDisposable
+        where TPacket : IPacket
     {
         #region Constants
 
@@ -15,8 +15,7 @@
         #region Fields
 
         private readonly ushort _duration;
-        private readonly IPacketRestorer<T> _restorer;
-        private readonly JitterQueue<T> _jitter;
+        private readonly JitterQueue<TPacket> _jitter;
 
         private CancellationTokenSource _cancellation;
         private Thread _thread;
@@ -27,18 +26,17 @@
 
         #region Events
 
-        public event Action<bool, T> Completed;
+        public event Action<TPacket, bool> Completed;
 
         #endregion Events
 
         #region Constructors
 
-        public JitterTimer(IPacketRestorer<T> restorer, ushort duration) 
+        public JitterTimer(ushort duration)
         {
             _duration = duration;
-            _restorer = restorer;
 
-            _jitter = new JitterQueue<T>(JITTER_MAX_DURATION / duration);
+            _jitter = new JitterQueue<TPacket>(JITTER_MAX_DURATION / duration);
             _cancellation = new CancellationTokenSource();
             _thread = new Thread(CheckHungry);
             _thread.Start();
@@ -48,7 +46,7 @@
 
         #region Methods
 
-        public void Append(T packet) 
+        public void Append(TPacket packet)
         {
             _jitter.Push(packet);
             Handle(false);
@@ -72,9 +70,7 @@
 
         private void Handle(bool hungry)
         {
-            var recover = false;
-            T packet;
-            
+            TPacket packet;
             do
             {
                 uint? index = _jitter.Pull(hungry, out packet);
@@ -82,18 +78,14 @@
                 {
                     break;
                 }
-                
-                recover = packet == null;
+
+                var recover = packet == null;
                 if (recover)
                 {
                     packet = _jitter.Peek();
                 }
-                else
-                {
-                    _restorer.Append(packet);
-                }
 
-                Completed?.Invoke(recover, packet ?? _restorer.Recovery(index.Value, packet));
+                Completed?.Invoke(packet, recover);
             }
             while (packet != null);
         }

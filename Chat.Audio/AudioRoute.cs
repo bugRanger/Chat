@@ -10,7 +10,7 @@
     {
         #region Fields
 
-        private readonly AudioBuffer _buffer;
+        private readonly JitterBufferProvider _buffer;
         private readonly IAudioCodec _codec;
         private readonly IAudioTransport _transport;
 
@@ -35,7 +35,7 @@
             _codec = codec;
             _transport = transport;
 
-            _buffer = new AudioBuffer(codec);
+            _buffer = new JitterBufferProvider(codec);
             _first = true;
 
             WaveFormat = _codec.Format.ToWaveFormat();

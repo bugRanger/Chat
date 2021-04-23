@@ -6,7 +6,7 @@
 
     using Chat.Net.Jitter;
 
-    public class AudioBuffer : ISampleProvider
+    public class JitterBufferProvider : ISampleProvider
     {
         #region Fields
 
@@ -27,7 +27,7 @@
 
         #region Constructors
 
-        public AudioBuffer(IAudioCodec codec)
+        public JitterBufferProvider(IAudioCodec codec)
         {
             _codec = codec;
             _waveProvider = new BufferedWaveProvider(_codec.Format.ToWaveFormat());
@@ -35,7 +35,7 @@
 
             _sampleProvider = _waveProvider.ToSampleProvider();
 
-            _jitter = new JitterTimer<IAudioPacket>(new AudioPacketRestorer(), codec.Format.Duration);
+            _jitter = new JitterTimer<IAudioPacket>(codec.Format.Duration);
             _jitter.Completed += OnCompleted; 
         }
 
@@ -64,7 +64,7 @@
             GC.SuppressFinalize(this);
         }
 
-        private void OnCompleted(bool recover, IAudioPacket packet)
+        private void OnCompleted(IAudioPacket packet, bool recover)
         {
             byte[] uncompressed;
 
