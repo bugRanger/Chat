@@ -1,32 +1,23 @@
-﻿namespace Chat.Audio
+﻿namespace Chat.Audio.Mixer
 {
     using System;
     using System.Threading;
     using System.Collections.Generic;
 
-    using NLog;
-    using NAudio.Wave;
-
     public class AudioMixer : IDisposable
     {
-        #region Constants
-
-        internal const int LOCKER_FOR_TESTS = -1;
-
-        #endregion Constants
-
         #region Fields
 
-        private readonly ILogger _logger;
         private readonly object _locker;
 
-        private readonly HashSet<IAudioStream> _streams;
-        private readonly Queue<AudioChunk> _chunks;
+        private readonly HashSet<ISampleStream> _streams;
         private readonly AudioFormat _format;
         private readonly int _interval;
 
         private CancellationTokenSource _cancellation;
-        private ManualResetEventSlim _sync;
+        private Worker<MixedChunk> _queue;
+        private EventWaitHandle _waiter;
+        private EventWaitHandle _worker;
         private Thread _thread;
 
         private bool _disposed;
@@ -36,23 +27,23 @@
         #region Constructors
 
         public AudioMixer(AudioFormat format)
-            : this(format.Duration)
+            : this(format, format.Duration)
         {
-            _format = format;
         }
 
-        internal AudioMixer(int interval)
+        public AudioMixer(AudioFormat format, int interval)
         {
-            _logger = LogManager.GetCurrentClassLogger();
             _locker = new object();
+            _format = format;
             _interval = interval;
 
-            _streams = new HashSet<IAudioStream>();
-            _chunks = new Queue<AudioChunk>();
+            _streams = new HashSet<ISampleStream>();
 
             _cancellation = new CancellationTokenSource();
-            _sync = new ManualResetEventSlim(false);
-            _thread = new Thread(HandleMixer);
+            _queue = new Worker<MixedChunk>(chunk => chunk.Unpack());
+            _waiter = new EventWaitHandle(false, EventResetMode.AutoReset);
+            _worker = new EventWaitHandle(false, EventResetMode.AutoReset);
+            _thread = new Thread(Handle);
             _thread.Start();
         }
 
@@ -60,12 +51,7 @@
 
         #region Methods
 
-        internal void WaitSync()
-        {
-            _sync.Set();
-        }
-
-        public void Append(IAudioStream stream)
+        public void Append(ISampleStream stream)
         {
             lock (_locker)
             {
@@ -73,12 +59,19 @@
             }
         }
 
-        public void Removed(IAudioStream stream)
+        public void Removed(ISampleStream stream)
         {
             lock (_locker)
             {
                 _streams.Remove(stream);
             }
+        }
+
+        public void WaitSync()
+        {
+            _waiter.Set();
+            _worker.WaitOne();
+            _queue.WaitSync();
         }
 
         public void Dispose()
@@ -87,57 +80,21 @@
             GC.SuppressFinalize(this);
         }
 
-        private void HandleMixer()
+        private void Handle()
         {
             while (!_cancellation.IsCancellationRequested)
             {
-                if (_sync.Wait(_interval))
-                {
-                    _sync.Reset();
-                }
-
-                var samplesCount = _format.GetSamples();
-                var mixture = new byte[samplesCount];
+                _waiter.WaitOne(_interval);
 
                 lock (_locker)
                 {
-                    foreach (IAudioStream stream in _streams)
-                    {
-                        try
-                        {
-                            var samples = new byte[samplesCount];
+                    var chunk = new MixedChunk(_format);
+                    chunk.Pack(_streams);
 
-                            int count = stream.Read(samples, 0, samplesCount);
-                            if (count > 0)
-                            {
-                                Sum32Bit(samples, mixture);
-                            }
-
-                            _chunks.Enqueue(new AudioChunk(stream, new ArraySegment<byte>(samples, 0, count)));
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Error(ex);
-                        }
-                    }
+                    _queue.Enqueue(chunk);
                 }
 
-                while (_chunks.TryDequeue(out AudioChunk chunk))
-                {
-                    try
-                    {
-                        if (chunk.Samples.Count - chunk.Samples.Offset > 0)
-                        {
-                            Sub32Bit(mixture, chunk.Samples);
-                        }
-
-                        chunk.Write();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex);
-                    }
-                }
+                _worker.Set();
             }
         }
 
@@ -155,8 +112,14 @@
                 _thread.Join();
                 _thread = null;
 
-                _sync.Dispose();
-                _sync = null;
+                _waiter.Dispose();
+                _waiter = null;
+
+                _worker.Dispose();
+                _worker = null;
+
+                _queue.Dispose();
+                _queue = null;
 
                 _cancellation.Dispose();
                 _cancellation = null;
@@ -167,40 +130,7 @@
             _disposed = true;
         }
 
-        [Obsolete("Remove: use safe methods.")]
-        internal static unsafe void Sum32Bit(ArraySegment<byte> source, byte[] dest)
-        {
-            fixed (byte* pSource = &source.Array[0], pDest = &dest[0])
-            {
-                int count = (source.Count - source.Offset) / 4;
-
-                float* pfSource = (float*)pSource;
-                float* pfDest = (float*)pDest;
-
-                for (int n = 0; n < count; n++)
-                {
-                    pfDest[n] += pfSource[n];
-                }
-            }
-        }
-
-        [Obsolete("Remove: use safe methods.")]
-        internal static unsafe void Sub32Bit(byte[] source, ArraySegment<byte> dest)
-        {
-            fixed (byte* pSource = &source[0], pDest = &dest.Array[0])
-            {
-                int count = (dest.Count - dest.Offset) / 4;
-
-                float* pfSource = (float*)pSource;
-                float* pfDest = (float*)pDest;
-
-                for (int n = 0; n < count; n++)
-                {
-                    pfDest[n] = pfSource[n] - pfDest[n];
-                }
-            }
-        }
-
         #endregion Methods
     }
+
 }

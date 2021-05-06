@@ -6,12 +6,11 @@
 
     using Chat.Net.Jitter;
 
-    public class JitterBufferProvider : ISampleProvider
+    public class JitterBufferProvider : IWaveProvider
     {
         #region Fields
 
         private readonly BufferedWaveProvider _waveProvider;
-        private readonly ISampleProvider _sampleProvider;
         private readonly IAudioCodec _codec;
 
         private JitterTimer<IAudioPacket> _jitter;
@@ -33,8 +32,6 @@
             _waveProvider = new BufferedWaveProvider(_codec.Format.ToWaveFormat());
             _waveProvider.DiscardOnBufferOverflow = false;
 
-            _sampleProvider = _waveProvider.ToSampleProvider();
-
             _jitter = new JitterTimer<IAudioPacket>(codec.Format.Duration);
             _jitter.Completed += OnCompleted; 
         }
@@ -48,12 +45,7 @@
             _jitter.Append(packet);
         }
 
-        public int Read(float[] buffer, int offset, int count)
-        {
-            return _sampleProvider.Read(buffer, offset, count);
-        }
-
-        internal int Read(byte[] buffer, int offset, int count)
+        public int Read(byte[] buffer, int offset, int count)
         {
             return _waveProvider.Read(buffer, offset, count);
         }

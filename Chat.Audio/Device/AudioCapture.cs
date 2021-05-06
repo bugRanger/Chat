@@ -10,7 +10,7 @@
     {
         #region Fields
 
-        private readonly HashSet<IAudioStream> _streams;
+        private readonly HashSet<IWaveStream> _streams;
         private readonly IWaveIn _waveIn;
         private bool _disposed;
 
@@ -26,7 +26,7 @@
 
         public AudioCapture(AudioFormat format)
         {
-            _streams = new HashSet<IAudioStream>();
+            _streams = new HashSet<IWaveStream>();
             _waveIn = new WaveInEvent()
             {
                 WaveFormat = format.ToWaveFormat(),
@@ -46,7 +46,7 @@
 
         #region Methods
 
-        public void Append(IAudioStream stream)
+        public void Append(IWaveStream stream)
         {
             if (_streams.Add(stream))
             {
@@ -55,7 +55,7 @@
             }
         }
 
-        public void Remove(IAudioStream stream)
+        public void Remove(IWaveStream stream)
         {
             if (_streams.Remove(stream))
             {

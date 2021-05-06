@@ -54,7 +54,7 @@
             _consumers.Add(makeConsumer(Format));
         }
 
-        public bool TryGet(int routeId, out IAudioStream route)
+        public bool TryGet(int routeId, out IWaveStream route)
         {
             route = null;
 

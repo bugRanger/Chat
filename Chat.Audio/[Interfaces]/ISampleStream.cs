@@ -4,13 +4,11 @@
 
     using NAudio.Wave;
 
-    public interface IAudioStream : ISampleProvider
+    public interface ISampleStream : ISampleProvider
     {
         #region Methods
 
-        void Write(ArraySegment<byte> buffer);
-
-        int Read(byte[] buffer, int offset, int count);
+        void Write(ArraySegment<float> buffer);
 
         void Flush();
 

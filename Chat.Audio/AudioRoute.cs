@@ -6,11 +6,12 @@
 
     using NAudio.Wave;
 
-    public class AudioRoute : IAudioStream, IDisposable
+    public class AudioRoute : IWaveStream, IDisposable
     {
         #region Fields
 
         private readonly JitterBufferProvider _buffer;
+        private readonly ISampleProvider _sampleProvider;
         private readonly IAudioCodec _codec;
         private readonly IAudioTransport _transport;
 
@@ -34,6 +35,8 @@
         {
             _codec = codec;
             _transport = transport;
+
+            _sampleProvider = this.ToSampleProvider();
 
             _buffer = new JitterBufferProvider(codec);
             _first = true;
@@ -73,15 +76,15 @@
             return _buffer.Read(buffer, offset, count);
         }
 
-        public int Read(float[] buffer, int offset, int count)
-        {
-            return _buffer.Read(buffer, offset, count);
-        }
-
         public void Flush()
         {
             _first = true;
             _sequenceId = 0;
+        }
+
+        public ISampleProvider AsSampleProvider()
+        {
+            return _sampleProvider;
         }
 
         public void Dispose() 

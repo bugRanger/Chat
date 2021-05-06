@@ -225,7 +225,7 @@
 
         static void MuteHandle(MuteCommand command)
         {
-            if (!AudioController.TryGet(command.RouteId, out IAudioStream stream))
+            if (!AudioController.TryGet(command.RouteId, out IWaveStream stream))
             {
                 return;
             }
@@ -235,7 +235,7 @@
 
         static void UnMuteHandle(UnmuteCommand command)
         {
-            if (!AudioController.TryGet(command.RouteId, out IAudioStream stream))
+            if (!AudioController.TryGet(command.RouteId, out IWaveStream stream))
             {
                 return;
             }

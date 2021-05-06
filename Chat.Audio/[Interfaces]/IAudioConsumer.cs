@@ -6,9 +6,9 @@
     {
         #region Methods
 
-        void Append(IAudioStream route);
+        void Append(IWaveStream route);
 
-        void Remove(IAudioStream route);
+        void Remove(IWaveStream route);
 
         #endregion Methods
     }
