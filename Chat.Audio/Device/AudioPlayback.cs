@@ -44,12 +44,12 @@
 
         public void Append(IWaveStream stream)
         {
-            _waveProvider.AddMixerInput(stream.AsSampleProvider());
+            _waveProvider.AddMixerInput(stream.AsSampleStream());
         }
 
         public void Remove(IWaveStream stream)
         {
-            _waveProvider.RemoveMixerInput(stream.AsSampleProvider());
+            _waveProvider.RemoveMixerInput(stream.AsSampleStream());
         }
 
         protected virtual void Dispose(bool disposing)

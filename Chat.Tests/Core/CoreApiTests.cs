@@ -69,7 +69,7 @@
             Core = new CoreApi(NetworkMoq.Object, MessageFactory);
             Calls = new CallController(Container, () =>
             {
-                Routers.Add(new BridgeRouter(new AudioProvider(NetworkMoq.Object)));
+                Routers.Add(new PrivateRouter(new AudioProvider(NetworkMoq.Object)));
                 return Routers[^1];
             });
             Authorization = new AuthorizationController();

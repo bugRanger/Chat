@@ -14,11 +14,17 @@
     using Chat.Server.Audio;
     using Chat.Server.Watcher;
 
+    using Chat.Audio;
+    using Chat.Audio.Codecs;
+
     class Program
     {
         static void Main(string[] args)
         {
             LogManager.Configuration ??= new NLog.Config.LoggingConfiguration();
+
+            // TODO: Del global default audio codec.
+            var codec = new PcmCodec(new AudioFormat());
 
             var tcpProvider = new TcpProvider(NetworkSocket.Create);
             var udpProvider = new UdpProvider(NetworkSocket.Create);
@@ -30,7 +36,8 @@
 
             // TODO Impl udp transport layer.
             var provider = new AudioProvider(udpProvider);
-            var calls = new CallController(new KeyContainer(), () => new BridgeRouter(provider));
+            //var calls = new CallController(new KeyContainer(), () => new PrivateRouter(provider));
+            var calls = new CallController(new KeyContainer(), () => new GroupRouter(provider, codec));
             var authorization = new AuthorizationController();
 
             var core = new CoreApi(tcpProvider, new MessageFactory(true));

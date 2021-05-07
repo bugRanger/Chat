@@ -46,9 +46,14 @@
             return new WaveFormat(SampleRate, BitDepth, Channels);
         }
 
-        public int GetSamples() 
+        public int GetBytes() 
         {
             return SampleRate / 1000 * Duration * (BitDepth / 8) * Channels;
+        }
+
+        public int GetSamples()
+        {
+            return GetBytes() / 4;
         }
 
         #endregion Methods

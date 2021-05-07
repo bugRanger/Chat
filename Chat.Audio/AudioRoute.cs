@@ -1,8 +1,8 @@
-﻿namespace Chat.Client.Audio
+﻿namespace Chat.Audio
 {
     using System;
 
-    using Chat.Audio;
+    using Chat.Audio.Mixer;
 
     using NAudio.Wave;
 
@@ -10,8 +10,8 @@
     {
         #region Fields
 
-        private readonly JitterBufferProvider _buffer;
-        private readonly ISampleProvider _sampleProvider;
+        private readonly IJitterProvider _buffer;
+        private readonly ISampleStream _sampleStream;
         private readonly IAudioCodec _codec;
         private readonly IAudioTransport _transport;
 
@@ -31,17 +31,17 @@
 
         #region Constructors
 
-        public AudioRoute(IAudioCodec codec, IAudioTransport transport)
+        public AudioRoute(IAudioCodec codec, IAudioTransport transport, Func<IAudioCodec, IJitterProvider> makeJitter)
         {
             _codec = codec;
             _transport = transport;
 
-            _sampleProvider = this.ToSampleProvider();
+            WaveFormat = codec.Format.ToWaveFormat();
 
-            _buffer = new JitterBufferProvider(codec);
+            _sampleStream = new SampleStream(this);
+
+            _buffer = makeJitter(codec);
             _first = true;
-
-            WaveFormat = _codec.Format.ToWaveFormat();
         }
 
         #endregion Constructors
@@ -82,9 +82,9 @@
             _sequenceId = 0;
         }
 
-        public ISampleProvider AsSampleProvider()
+        public ISampleStream AsSampleStream()
         {
-            return _sampleProvider;
+            return _sampleStream;
         }
 
         public void Dispose() 

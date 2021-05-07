@@ -13,7 +13,7 @@
 
         #region Methods
 
-        void Append(IPEndPoint route);
+        void Append(IPEndPoint route, int routeId);
 
         void Remove(IPEndPoint route);
 

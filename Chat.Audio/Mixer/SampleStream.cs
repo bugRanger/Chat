@@ -9,8 +9,8 @@
         #region Fields
 
         private readonly IWaveStream _waveStream;
+        private readonly ISampleProvider _sampleProvider;
 
-        private byte[] _readBytes;
         private byte[] _writeBytes;
 
         #endregion Fields
@@ -26,6 +26,7 @@
         public SampleStream(IWaveStream stream)
         {
             _waveStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            _sampleProvider = stream.ToSampleProvider();
         }
 
         #endregion Constructors
@@ -34,26 +35,7 @@
 
         public int Read(float[] buffer, int offset, int count)
         {
-            int bytes = count * 4;
-            if (_readBytes == null || bytes > _readBytes.Length)
-                _readBytes = new byte[bytes];
-
-            bytes = _waveStream.Read(_readBytes, 0, bytes);
-            int samples = bytes / 4;
-
-            unsafe
-            {
-                fixed (byte* pBytes = &_readBytes[0])
-                {
-                    float* pFloat = (float*)pBytes;
-                    for (int n = 0, i = 0; n < bytes; n += 4, i++)
-                    {
-                        buffer[offset++] = *(pFloat + i);
-                    }
-                }
-            }
-
-            return samples;
+            return _sampleProvider.Read(buffer, offset, count);
         }
 
         public void Write(ArraySegment<float> buffer)

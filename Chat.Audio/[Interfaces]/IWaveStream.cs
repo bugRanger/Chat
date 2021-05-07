@@ -12,7 +12,7 @@
 
         void Flush();
 
-        ISampleProvider AsSampleProvider();
+        ISampleStream AsSampleStream();
 
         #endregion Methods
     }

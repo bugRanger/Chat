@@ -75,7 +75,7 @@
             }
 
             var codec = _codecFactory(Format);
-            var route = new AudioRoute(codec, this) 
+            var route = new AudioRoute(codec, this, MakeJitter) 
             { 
                 Id = routeId 
             };
@@ -117,6 +117,11 @@
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        private IJitterProvider MakeJitter(IAudioCodec codec)
+        {
+            return new JitterBufferProvider(codec);
         }
 
         private void OnTransportReceived(byte[] bytes, ref int offset, int count)

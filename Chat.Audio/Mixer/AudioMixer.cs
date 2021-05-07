@@ -59,7 +59,7 @@
             }
         }
 
-        public void Removed(ISampleStream stream)
+        public void Remove(ISampleStream stream)
         {
             lock (_locker)
             {

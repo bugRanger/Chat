@@ -7,7 +7,7 @@
 
     using Chat.Audio;
 
-    public class BridgeRouter : IAudioRouter
+    public class PrivateRouter : IAudioRouter
     {
         #region Fields
 
@@ -27,7 +27,7 @@
 
         #region Constructors
 
-        public BridgeRouter(IAudioProvider provider) 
+        public PrivateRouter(IAudioProvider provider) 
         {
             _locker = new object();
             _routes = new HashSet<IPEndPoint>();
@@ -40,7 +40,7 @@
 
         #region Methods
 
-        public void Append(IPEndPoint route)
+        public void Append(IPEndPoint route, int routeId)
         {
             lock (_locker)
             {
