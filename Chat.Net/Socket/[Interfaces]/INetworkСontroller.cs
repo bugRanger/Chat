@@ -3,19 +3,19 @@
     using System;
     using System.Net;
 
-    public delegate void PreparePacket(IPEndPoint remote, byte[] bytes, ref int offset, int count);
+    public delegate void ReceivedFrom(IPEndPoint remote, byte[] bytes, ref int offset, int count);
 
     public interface INetworkСontroller
     {
         #region Events
 
-        event PreparePacket PreparePacket;
+        event ReceivedFrom ReceivedFrom;
 
         #endregion Events
 
         #region Methods
 
-        void Send(IPEndPoint target, ArraySegment<byte> bytes);
+        void SendTo(IPEndPoint target, ArraySegment<byte> bytes);
 
         #endregion Methods
     }

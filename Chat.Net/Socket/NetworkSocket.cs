@@ -20,6 +20,8 @@
 
         public EndPoint RemoteEndPoint => _socket?.RemoteEndPoint;
 
+        public EndPoint LocalEndPoint => _socket?.LocalEndPoint;
+
         #endregion Properties
 
         #region Constructors
@@ -75,6 +77,16 @@
             return new NetworkStream(_socket);
         }
 
+        public int Send(byte[] bytes, int offset, int count)
+        {
+            return _socket.Send(bytes, offset, count, SocketFlags.None);
+        }
+
+        public int Receive(byte[] bytes, int offset, int count)
+        {
+            return _socket.Receive(bytes, offset, count, SocketFlags.None);
+        }
+
         public int SendTo(byte[] bytes, int offset, int count, EndPoint remote)
         {
             return _socket.SendTo(bytes, offset, count, SocketFlags.None, remote);
@@ -93,6 +105,11 @@
         public int IOControl(int ioControlCode, byte[] optionInValue, byte[] optionOutValue) 
         {
             return _socket.IOControl(ioControlCode, optionInValue, optionOutValue);
+        }
+
+        public void Connect(EndPoint remote)
+        {
+            _socket.Connect(remote);
         }
 
         public void Close() 

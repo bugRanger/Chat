@@ -1,25 +1,30 @@
-﻿namespace Chat.Client.Network
+﻿namespace Chat.Net.Socket
 {
     using System;
     using System.Net;
-    using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    
-    public class EasySocket : INetworkStream
+
+    public class ClientSocket : INetworkStream
     {
+        #region Constants
+
+        private const int RECONNECT_INTERVAL = 1500;
+
+        #endregion Constants
+
         #region Fields
 
-        private readonly Func<Socket> _factory;
+        private readonly Func<ISocket> _factory;
 
-        private Socket _socket;
+        private ISocket _socket;
         private CancellationTokenSource _cancellation;
 
         #endregion Fields
 
         #region Events
 
-        public event PreparePacket PreparePacket;
+        public event Received Received;
 
         #endregion Events
 
@@ -31,7 +36,7 @@
 
         #region Constructors
 
-        public EasySocket(Func<Socket> factory)
+        public ClientSocket(Func<ISocket> factory)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
@@ -40,7 +45,7 @@
 
         #region Methods
 
-        public void Connection(IPAddress address, int port)
+        public void Connection(EndPoint remote)
         {
             if (_socket != null)
             {
@@ -59,7 +64,7 @@
                         try
                         {
                             _socket = _factory();
-                            _socket.Connect(address, port);
+                            _socket.Connect(remote);
 
                             int remain = 0;
                             int received = 0;
@@ -68,7 +73,7 @@
 
                             while (!_cancellation.Token.IsCancellationRequested)
                             {
-                                received = _socket.Receive(buffer, remain, buffer.Length - remain, SocketFlags.None);
+                                received = _socket.Receive(buffer, remain, buffer.Length - remain);
 
                                 if (received == 0)
                                 {
@@ -78,7 +83,7 @@
                                 remain += received;
                                 int offset = 0;
 
-                                PreparePacket?.Invoke(buffer, ref offset, remain);
+                                Received?.Invoke(buffer, ref offset, remain);
 
                                 remain -= offset;
                                 if (remain > 0)
@@ -98,7 +103,7 @@
                         }
 
                         _cancellation.Token.ThrowIfCancellationRequested();
-                        await Task.Delay(1500);
+                        await Task.Delay(RECONNECT_INTERVAL);
                     }
                 }
                 finally
@@ -116,7 +121,7 @@
 
         public void Send(ArraySegment<byte> bytes)
         {
-            _socket?.Send(bytes);
+            _socket?.Send(bytes.Array, bytes.Offset, bytes.Count);
         }
 
         #endregion Methods

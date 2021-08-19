@@ -69,7 +69,7 @@
                         _router.Remove(new IPEndPoint(user.Remote.Address, routePort));
                     }
 
-                    _router.Append(new IPEndPoint(user.Remote.Address, port));
+                    _router.Append(new IPEndPoint(user.Remote.Address, port), RouteId);
                 }
 
                 _userToPort[user] = port;

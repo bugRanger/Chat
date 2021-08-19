@@ -35,7 +35,7 @@
         public byte[] Restore(ArraySegment<byte> compressed)
         {
             // TODO: Impl PLC.
-            return new byte[Format.GetSamples()];
+            return new byte[Format.GetBytes()];
         }
 
         public void Dispose()

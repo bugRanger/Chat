@@ -4,11 +4,11 @@
 
     using NAudio.Wave;
 
-    public interface IAudioStream : ISampleProvider
+    public interface IJitterProvider : IWaveProvider, IDisposable
     {
         #region Methods
 
-        void Write(ArraySegment<byte> buffer);
+        void Enqueue(IAudioPacket packet);
 
         #endregion Methods
     }

@@ -43,7 +43,7 @@
             _modules = new List<IApiModule>();
 
             _network = network;
-            _network.PreparePacket += OnPreparePacket;
+            _network.ReceivedFrom += OnPreparePacket;
             _network.ConnectionClosing += OnConnectionClosing;
         }
 
@@ -64,7 +64,7 @@
                 return;
             }
 
-            _network.Send(remote, bytes);
+            _network.SendTo(remote, bytes);
         }
 
         public void Send(IMessage message, params IPEndPoint[] remotes)
@@ -77,7 +77,7 @@
 
             foreach (IPEndPoint target in remotes)
             {
-                _network.Send(target, bytes);
+                _network.SendTo(target, bytes);
             }
         }
 

@@ -1,11 +1,10 @@
 ﻿namespace Chat.Client.Audio
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
 
     using Chat.Audio;
-    using Chat.Client.Network;
+    using Chat.Net.Socket;
 
     public class AudioController : IAudioController, IAudioTransport, IDisposable
     {
@@ -35,7 +34,7 @@
             _codecFactory = codecFactory;
 
             _transport = transport;
-            _transport.PreparePacket += OnTransportReceived;
+            _transport.Received += OnTransportReceived;
 
             _routes = new Dictionary<int, AudioRoute>();
             _consumers = new List<IAudioConsumer>();
@@ -55,6 +54,19 @@
             _consumers.Add(makeConsumer(Format));
         }
 
+        public bool TryGet(int routeId, out IWaveStream route)
+        {
+            route = null;
+
+            if (!_routes.ContainsKey(routeId))
+            {
+                return false;
+            }
+
+            route = _routes[routeId];
+            return true;
+        }
+
         public void Append(int routeId) 
         {
             if (_routes.ContainsKey(routeId))
@@ -63,7 +75,7 @@
             }
 
             var codec = _codecFactory(Format);
-            var route = new AudioRoute(codec, this) 
+            var route = new AudioRoute(codec, this, MakeJitter) 
             { 
                 Id = routeId 
             };
@@ -107,6 +119,11 @@
             GC.SuppressFinalize(this);
         }
 
+        private IJitterProvider MakeJitter(IAudioCodec codec)
+        {
+            return new JitterBufferProvider(codec);
+        }
+
         private void OnTransportReceived(byte[] bytes, ref int offset, int count)
         {
             var packet = new AudioPacket();
@@ -131,7 +148,7 @@
 
             if (disposing)
             {
-                _transport.PreparePacket -= OnTransportReceived;
+                _transport.Received -= OnTransportReceived;
 
                 for (int i = _routes.Count - 1; i >= 0; i--)
                 {

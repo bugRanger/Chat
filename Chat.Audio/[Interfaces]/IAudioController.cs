@@ -1,4 +1,4 @@
-﻿namespace Chat.Client.Audio
+﻿namespace Chat.Audio
 {
     using System;
 

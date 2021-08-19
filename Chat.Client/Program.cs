@@ -3,13 +3,11 @@
     using System;
     using System.Net;
     using System.Net.Sockets;
-    
+
     using Chat.Api;
     using Chat.Api.Messages.Auth;
     using Chat.Api.Messages.Call;
     using Chat.Api.Messages.Text;
-
-    using Chat.Client.Network;
     using Chat.Client.Commander;
     using Chat.Client.Commander.Commands;
 
@@ -17,24 +15,28 @@
     using Chat.Audio.Codecs;
     using Chat.Client.Call;
     using Chat.Client.Audio;
+    using Chat.Net.Socket;
 
     class Program
     {
         #region Properties
 
+        static CallController CallController { get; set; } 
+
         static AudioController AudioController { get; set; }
+
+        static AudioCapture AudioCapture { get; set; }
 
         static MessageFactory MessageFactory { get; set; }
 
-        static EasySocket ApiSocket { get; set; }
+        static ClientSocket ApiSocket { get; set; }
 
-        static EasySocket CallSocket { get; set; }
-
-        static CallSession CallSession { get; set; }
-
-        static int CallSessionId { get; set; }
+        static ClientSocket CallSocket { get; set; }
 
         static string Me { get; set; }
+
+        [Obsolete("Removed")]
+        static int SessionId { get; set; }
 
         #endregion Properties
 
@@ -42,13 +44,15 @@
         {
             MessageFactory = new MessageFactory(true);
 
-            CallSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
-            ApiSocket = new EasySocket(() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-            ApiSocket.PreparePacket += ApiReceived;
+            CallSocket = new ClientSocket(() => NetworkSocket.Create(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp));
+            ApiSocket = new ClientSocket(() => NetworkSocket.Create(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+            ApiSocket.Received += ApiReceived;
 
             AudioController = new AudioController(new AudioFormat(), CallSocket, format => new PcmCodec(format));
             AudioController.Registration(format => new AudioPlayback(format));
-            AudioController.Registration(format => new AudioCapture(format));
+            AudioController.Registration(format => AudioCapture = new AudioCapture(format));
+
+            CallController = new CallController(AudioController);
 
             var commandParser = new CommandParser('!')
             {
@@ -77,12 +81,20 @@
                     .Build(CallHandle),
 
                 new CommandBuilder<CallInviteCommand>("invite")
-                    //.Parameter("s", (cmd, value) => cmd.SessionId = int.Parse(value))
+                    .Parameter("s", (cmd, value) => cmd.SessionId = int.Parse(value))
                     .Build(CallInviteHandle),
 
                 new CommandBuilder<HangUpCommand>("hangup")
-                    //.Parameter("u", (cmd, value) => cmd.SessionId = int.Parse(value))
+                    .Parameter("s", (cmd, value) => cmd.SessionId = int.Parse(value))
                     .Build(CallHangUpHandle),
+
+                new CommandBuilder<MuteCommand>("mute")
+                    .Parameter("r", (cmd, value) => cmd.RouteId = int.Parse(value))
+                    .Build(MuteHandle),
+
+                new CommandBuilder<UnmuteCommand>("unmute")
+                    .Parameter("r", (cmd, value) => cmd.RouteId = int.Parse(value))
+                    .Build(UnMuteHandle),
             };
 
             while (true)
@@ -114,25 +126,24 @@
                 switch (message.Payload)
                 {
                     case CallResponse response:
-                        if (CallSession == null)
+                        if (!CallController.TryGet(response.SessionId, out _))
                         {
-                            CallSessionId = response.SessionId;
-                            CallSession = new CallSession(AudioController)
-                            {
-                                Id = response.SessionId,
-                                RouteId = response.RouteId,
-                            };
-                            CallSession.ChangeState += ChangeState;
+                            SessionId = response.SessionId;
+
+                            CallController.Append(response.SessionId, response.RouteId);
+                            Console.WriteLine($" < Call routeID: {response.RouteId}");
                         }
                         break;
 
                     case CallBroadcast broadcast:
-                        if (CallSession == null && broadcast.State == CallState.Calling)
+                        if (!CallController.TryGet(broadcast.SessionId, out var callSession) && broadcast.State == CallState.Calling)
                         {
-                            CallSessionId = broadcast.SessionId;
+                            SessionId = broadcast.SessionId;
+
                             Send(new CallInviteRequest { SessionId = broadcast.SessionId, RoutePort = CallSocket.Local.Port });
+                            Console.WriteLine($" < Call sessionID: {broadcast.SessionId}");
                         }
-                        CallSession?.RaiseState(broadcast.State);
+                        callSession?.RaiseState(broadcast.State);
                         break;
 
                     default:
@@ -153,10 +164,10 @@
 
         #region Commands
 
-        private static void ConnectionHandle(ConnectCommand command)
+        static void ConnectionHandle(ConnectCommand command)
         {
-            CallSocket.Connection(command.Address, command.Port);
-            ApiSocket.Connection(command.Address, command.Port);
+            CallSocket.Connection(new IPEndPoint(command.Address, command.Port));
+            ApiSocket.Connection(new IPEndPoint(command.Address, command.Port));
 
             if (string.IsNullOrWhiteSpace(Me))
                 return;
@@ -164,7 +175,7 @@
             Send(new LoginRequest { User = Me });
         }
 
-        private static void DisconnectHandle(DisconnectCommand command)
+        static void DisconnectHandle(DisconnectCommand command)
         {
             ApiSocket.Disconnect();
             CallSocket.Disconnect();
@@ -197,23 +208,39 @@
 
         static void CallInviteHandle(CallInviteCommand command)
         {
-            Send(new CallInviteRequest { SessionId = CallSessionId/*command.SessionId*/, RoutePort = CallSocket.Local.Port });
+            command.SessionId = SessionId;
+
+            Send(new CallInviteRequest { SessionId = command.SessionId, RoutePort = CallSocket.Local.Port });
         }
 
         static void CallHangUpHandle(HangUpCommand command)
         {
-            CallSession?.Dispose();
-            Send(new CallCancelRequest { SessionId = CallSessionId/*command.SessionId*/ });
-        }
+            command.SessionId = SessionId;
 
-        static void ChangeState(CallState state)
-        {
-            if (state != CallState.Idle || CallSession == null)
+            if (!CallController.Remove(command.SessionId))
                 return;
 
-            CallSession.ChangeState -= ChangeState;
-            CallSession.Dispose();
-            CallSession = null;
+            Send(new CallCancelRequest { SessionId = command.SessionId });
+        }
+
+        static void MuteHandle(MuteCommand command)
+        {
+            if (!AudioController.TryGet(command.RouteId, out IWaveStream stream))
+            {
+                return;
+            }
+
+            AudioCapture.Remove(stream);
+        }
+
+        static void UnMuteHandle(UnmuteCommand command)
+        {
+            if (!AudioController.TryGet(command.RouteId, out IWaveStream stream))
+            {
+                return;
+            }
+
+            AudioCapture.Append(stream);
         }
 
         #endregion Calls

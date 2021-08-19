@@ -2,11 +2,11 @@
 {
     using System;
 
-    using Audio;
+    using Chat.Audio;
 
     using Chat.Api.Messages.Call;
 
-    class CallSession : IDisposable
+    public class CallSession : IDisposable
     {
         #region Fields
 
@@ -28,7 +28,7 @@
 
         #region Events
 
-        public event Action<CallState> ChangeState;
+        public event Action<int, CallState> ChangeState;
 
         #endregion Events
 
@@ -65,7 +65,7 @@
 
             State = state;
 
-            ChangeState?.Invoke(state);
+            ChangeState?.Invoke(Id, state);
         }
 
         public void Dispose()

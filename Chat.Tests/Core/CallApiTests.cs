@@ -66,8 +66,8 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(route1, received1));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route1, sended1.Array, sended1.Offset, sended1.Count);
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, route2, sended2.Array, sended2.Offset, sended2.Count);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, route1, sended1.Array, sended1.Offset, sended1.Count);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, route2, sended2.Array, sended2.Offset, sended2.Count);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -110,7 +110,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\"],\"State\":\"Idle\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[1], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
@@ -133,7 +133,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\"],\"State\":\"Idle\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[1], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(false, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
@@ -152,7 +152,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"CallNotFound\",\"Reason\":\"Call not found\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -168,7 +168,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -187,7 +187,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[1], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -206,7 +206,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[1], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -232,7 +232,7 @@
             }
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[1], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[1], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(true, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
@@ -257,7 +257,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"NotAuthorized\",\"Reason\":\"User is not logged in\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -275,7 +275,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"CallDuplicate\",\"Reason\":\"Call exists\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(true, _coreTests.Calls.TryGet(expectedId, out ICallSession session));
@@ -301,7 +301,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Invalid parameters: RoutePort\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -317,7 +317,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"UserNotFound\",\"Reason\":\"Target not found\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -333,7 +333,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[0], _coreTests.MessageFactory.Pack("{\"Id\":1,\"Type\":\"result\",\"Payload\":{\"Status\":\"Failure\",\"Reason\":\"Don't target at yourself\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             CollectionAssert.AreEqual(_coreTests.ExpectedEvent, _coreTests.ActualEvent);
@@ -357,7 +357,7 @@
             _coreTests.ExpectedEvent.Add(new TestEvent(_coreTests.Remotes[1], _coreTests.MessageFactory.Pack("{\"Id\":0,\"Type\":\"call-broadcast\",\"Payload\":{\"SessionId\":-1951180698,\"Participants\":[\"User1\",\"User2\"],\"State\":\"Calling\"}}")));
 
             // Act
-            _coreTests.NetworkMoq.Raise(s => s.PreparePacket += null, _coreTests.Remotes[0], request, 0, request.Length);
+            _coreTests.NetworkMoq.Raise(s => s.ReceivedFrom += null, _coreTests.Remotes[0], request, 0, request.Length);
 
             // Assert
             Assert.AreEqual(true, _coreTests.Calls.TryGet(expectedId, out ICallSession session));

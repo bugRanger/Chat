@@ -42,14 +42,14 @@
             GC.SuppressFinalize(this);
         }
 
-        public void Append(IAudioStream stream)
+        public void Append(IWaveStream stream)
         {
-            _waveProvider.AddMixerInput(stream);
+            _waveProvider.AddMixerInput(stream.AsSampleStream());
         }
 
-        public void Remove(IAudioStream stream)
+        public void Remove(IWaveStream stream)
         {
-            _waveProvider.RemoveMixerInput(stream);
+            _waveProvider.RemoveMixerInput(stream.AsSampleStream());
         }
 
         protected virtual void Dispose(bool disposing)

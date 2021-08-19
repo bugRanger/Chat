@@ -6,12 +6,11 @@
 
     using Chat.Net.Jitter;
 
-    public class AudioBuffer : ISampleProvider
+    public class JitterBufferProvider : IJitterProvider
     {
         #region Fields
 
         private readonly BufferedWaveProvider _waveProvider;
-        private readonly ISampleProvider _sampleProvider;
         private readonly IAudioCodec _codec;
 
         private JitterTimer<IAudioPacket> _jitter;
@@ -27,30 +26,29 @@
 
         #region Constructors
 
-        public AudioBuffer(IAudioCodec codec)
+        public JitterBufferProvider(IAudioCodec codec)
         {
             _codec = codec;
-            _waveProvider = new BufferedWaveProvider(_codec.Format.ToWaveFormat());
+
+            _waveProvider = new BufferedWaveProvider(codec.Format.ToWaveFormat());
             _waveProvider.DiscardOnBufferOverflow = false;
 
-            _sampleProvider = _waveProvider.ToSampleProvider();
-
-            _jitter = new JitterTimer<IAudioPacket>(new AudioPacketRestorer(), codec.Format.Duration);
-            _jitter.Completed += OnCaptured; 
+            _jitter = new JitterTimer<IAudioPacket>(codec.Format.Duration);
+            _jitter.Completed += OnCompleted;
         }
 
         #endregion Constructors
 
         #region Methods
 
-        public int Read(float[] buffer, int offset, int count)
-        {
-            return _sampleProvider.Read(buffer, offset, count);
-        }
-
         public void Enqueue(IAudioPacket packet)
         {
             _jitter.Append(packet);
+        }
+
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            return _waveProvider.Read(buffer, offset, count);
         }
 
         public void Dispose()
@@ -59,13 +57,13 @@
             GC.SuppressFinalize(this);
         }
 
-        private void OnCaptured(bool recover, IAudioPacket packet)
+        private void OnCompleted(IAudioPacket packet, bool recover)
         {
             byte[] uncompressed;
 
             if (recover)
             {
-                uncompressed = _codec.Restore(packet.Payload);
+                uncompressed = _codec.Restore(packet?.Payload ?? null);
             }
             else
             {
@@ -84,9 +82,11 @@
 
             if (disposing)
             {
-                _jitter.Completed -= OnCaptured;
+                _jitter.Completed -= OnCompleted;
                 _jitter.Dispose();
                 _jitter = null;
+
+                _waveProvider.ClearBuffer();
             }
 
             _disposed = true;

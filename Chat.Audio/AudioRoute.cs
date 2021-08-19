@@ -1,21 +1,23 @@
-﻿namespace Chat.Client.Audio
+﻿namespace Chat.Audio
 {
     using System;
 
-    using Chat.Audio;
+    using Chat.Audio.Mixer;
 
     using NAudio.Wave;
 
-    public class AudioRoute : IAudioStream, IDisposable
+    public class AudioRoute : IWaveStream, IDisposable
     {
         #region Fields
 
-        private readonly AudioBuffer _buffer;
+        private readonly IJitterProvider _buffer;
+        private readonly ISampleStream _sampleStream;
         private readonly IAudioCodec _codec;
         private readonly IAudioTransport _transport;
 
         private uint _sequenceId;
         private bool _disposed;
+        private bool _first;
 
         #endregion Fields
 
@@ -29,14 +31,17 @@
 
         #region Constructors
 
-        public AudioRoute(IAudioCodec codec, IAudioTransport transport)
+        public AudioRoute(IAudioCodec codec, IAudioTransport transport, Func<IAudioCodec, IJitterProvider> makeJitter)
         {
             _codec = codec;
             _transport = transport;
 
-            _buffer = new AudioBuffer(codec);
+            WaveFormat = codec.Format.ToWaveFormat();
 
-            WaveFormat = _codec.Format.ToWaveFormat();
+            _sampleStream = new SampleStream(this);
+
+            _buffer = makeJitter(codec);
+            _first = true;
         }
 
         #endregion Constructors
@@ -55,17 +60,31 @@
 
             var packet = new AudioPacket
             {
+                Mark = _first,
                 SequenceId = ++_sequenceId,
                 RouteId = Id,
                 Payload = compressed,
             };
 
+            _first = false;
+
             _transport.Send(packet);
         }
 
-        public int Read(float[] buffer, int offset, int count)
+        public int Read(byte[] buffer, int offset, int count)
         {
             return _buffer.Read(buffer, offset, count);
+        }
+
+        public void Flush()
+        {
+            _first = true;
+            _sequenceId = 0;
+        }
+
+        public ISampleStream AsSampleStream()
+        {
+            return _sampleStream;
         }
 
         public void Dispose() 

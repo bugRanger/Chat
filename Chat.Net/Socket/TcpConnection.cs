@@ -70,7 +70,7 @@
             _stream.Write(bytes.Array, bytes.Offset, bytes.Count);
         }
 
-        public async Task ListenAsync(PreparePacket prepare, CancellationToken token)
+        public async Task ListenAsync(ReceivedFrom prepare, CancellationToken token)
         {
             await Task.Run(() =>
             {
